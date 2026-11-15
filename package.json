@@ -1,0 +1,57 @@
+{
+  "name": "react-navigation-stack-pruner",
+  "version": "0.1.0",
+  "description": "Zero-dependency, version-agnostic helpers to remove intermediate screens from a React Navigation stack (v5, v6, v7, v8) in a single state update.",
+  "license": "MIT",
+  "sideEffects": false,
+  "main": "lib/commonjs/index.js",
+  "module": "lib/module/index.js",
+  "react-native": "lib/module/index.js",
+  "types": "lib/typescript/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./lib/typescript/index.d.ts",
+      "react-native": "./lib/module/index.js",
+      "import": "./lib/module/index.js",
+      "require": "./lib/commonjs/index.js",
+      "default": "./lib/module/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "src",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "clean": "rm -rf lib",
+    "build": "npm run clean && tsc -p tsconfig.build.json --module commonjs --outDir lib/commonjs && tsc -p tsconfig.build.json --module es2020 --outDir lib/module && tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/typescript && node -e \"require('fs').writeFileSync('lib/commonjs/package.json','{\\\"type\\\":\\\"commonjs\\\"}');require('fs').writeFileSync('lib/module/package.json','{\\\"type\\\":\\\"module\\\"}')\"",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run build && node --test test/*.test.js",
+    "prepublishOnly": "npm run typecheck && npm test"
+  },
+  "keywords": [
+    "react-native",
+    "react-navigation",
+    "navigation",
+    "stack",
+    "reset",
+    "remove",
+    "prune",
+    "flow",
+    "wizard"
+  ],
+  "peerDependencies": {
+    "react": ">=16.8"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.31",
+    "react": "^18.3.1",
+    "typescript": "^5.9.3"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
