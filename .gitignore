@@ -3,8 +3,6 @@ lib/
 *.tgz
 .DS_Store
 coverage/
-# leftover prototype from an earlier attempt (not part of the package)
-react-navigation-prune/
 
 # example apps (standalone, not part of the workspace)
 example/*/node_modules/
