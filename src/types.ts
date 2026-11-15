@@ -68,8 +68,9 @@ export interface PruneOptions {
   /** Screens inside the removed range that must be kept anyway. */
   keep?: RouteMatcher;
   /**
-   * Target a parent navigator by its `id` prop (v6+). Without it, the navigator
-   * that owns the `navigation` object is used.
+   * Pin a navigator by its `id` prop (v6/v7 only; v8 removed navigator ids).
+   * Usually unnecessary: without it, the current navigator is used, and if it
+   * does not contain `from`, its parents are searched automatically.
    */
   navigatorId?: string;
 }

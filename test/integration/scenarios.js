@@ -13,15 +13,11 @@ function captureWarnings() {
   return { warnings, restore: () => (console.warn = orig) };
 }
 
-function defineSuite(label, pkg, { major, skip }) {
+function defineSuite(label, pkg, { major }) {
   const loaded = loadCore(pkg);
-  const opts = skip
-    ? { skip }
-    : loaded.error
-      ? { skip: `cannot load ${pkg}: ${loaded.error.message.split('\n')[0]}` }
-      : {};
-  test.describe(`integration: React Navigation ${label}`, opts, () => {
-    if (opts.skip) return;
+  // A core that fails to load is a hard failure, never a silent skip.
+  if (loaded.error) throw loaded.error;
+  test.describe(`integration: React Navigation ${label}`, () => {
     const { mount } = createHarness(loaded.core);
     const base = (extra) => ({ initial: ['A', 'B', 'C', 'D'], ...extra });
     const nestedSpec = (extra) => ({
@@ -123,7 +119,7 @@ function defineSuite(label, pkg, { major, skip }) {
       assert.equal(app.stats.mounts[s.routes[1].key], 1);
     });
 
-    if (major >= 6) {
+    if (major >= 6 && major < 8) {
       test('navigatorId targets a parent navigator (nested)', () => {
         const app = mount(nestedSpec());
         const z = app.stats.routesByName.Z;
@@ -172,7 +168,7 @@ function defineSuite(label, pkg, { major, skip }) {
         }
       });
     } else {
-      test('navigatorId falls back to the current navigator with a warning (v5)', () => {
+      test(`navigatorId is unsupported on v${major}: warns, then auto-detects`, () => {
         const cap = captureWarnings();
         try {
           const app = mount(nestedSpec({ outerId: undefined }));
@@ -190,6 +186,44 @@ function defineSuite(label, pkg, { major, skip }) {
         }
       });
     }
+
+    test('auto-detects the parent navigator that contains `from` (nested, no config)', () => {
+      const app = mount(nestedSpec({ outerId: undefined, nested: { host: 'Flow', initial: ['X', 'Y', 'Z'] } }));
+      const z = app.stats.routesByName.Z;
+      const zNav = app.navOfKey(z.key);
+      app.resetCount();
+      let result;
+      act(() => {
+        result = pruneStack(zNav, { from: 'A', anchorKey: z.key });
+      });
+      assert.equal(result, true);
+      assert.deepEqual(app.names(), ['A', 'Flow']);
+      assert.equal(app.stats.stateChanges, 1);
+      assert.deepEqual(app.state().routes[1].state.routes.map((r) => r.name), ['X', 'Y', 'Z']);
+      assert.equal(app.stats.unmounts[z.key], undefined, 'nested screen not remounted');
+      // the inner navigator is preferred when it contains `from`
+      act(() => {
+        result = pruneStack(zNav, { from: 'X' });
+      });
+      assert.equal(result, true);
+      assert.deepEqual(app.state().routes[1].state.routes.map((r) => r.name), ['X', 'Z']);
+      // not found anywhere -> no-op
+      act(() => {
+        result = pruneStack(zNav, { from: 'Nope' });
+      });
+      assert.equal(result, false);
+    });
+
+    test('navigateAndPrune from a nested screen pushes into the navigator declaring it', () => {
+      const app = mount(nestedSpec({ outerId: undefined, extraScreens: ['Done'], nested: { host: 'Flow', initial: ['X', 'Y', 'Z'] } }));
+      const zNav = app.navOfKey(app.stats.routesByName.Z.key);
+      app.resetCount();
+      act(() => {
+        navigateAndPrune(zNav, { name: 'Done' }, { from: 'A' });
+      });
+      assert.deepEqual(app.names(), ['A', 'Done']);
+      assert.equal(app.stats.stateChanges, 1);
+    });
 
     test('createPruneListeners via the screen listeners prop (focus)', () => {
       const app = mount({
@@ -226,37 +260,30 @@ function defineSuite(label, pkg, { major, skip }) {
       assert.equal(app.stats.stateChanges, 1);
     });
 
-    test('usePruneOnMount under StrictMode prunes exactly once (immediate)', async () => {
-      const app = mount({
-        strict: true,
-        initial: ['A', 'B', 'C', 'D'],
-        hooks: {
-          D: (navigation, route) =>
-            usePruneOnMount(navigation, { from: 'A', anchorKey: route.key }, { when: 'immediate' }),
-        },
+    // StrictMode double-runs effects of a screen pushed onto a mounted
+    // navigator (the real-world case). Exactly one prune must land.
+    for (const when of ['immediate', 'transitionEnd']) {
+      test(`usePruneOnMount under StrictMode prunes exactly once (${when})`, async () => {
+        const app = mount({
+          strict: true,
+          initial: ['A', 'B', 'C'],
+          extraScreens: ['D'],
+          hooks: {
+            D: (navigation, route) =>
+              usePruneOnMount(navigation, { from: 'A', anchorKey: route.key }, { when, fallbackMs: 30 }),
+          },
+        });
+        app.resetCount();
+        await act(async () => {
+          app.navOf('C').navigate('D');
+        });
+        await act(async () => {
+          await app.sleep(80);
+        });
+        assert.deepEqual(app.names(), ['A', 'D']);
+        assert.equal(app.stats.stateChanges, 2, 'one navigate + exactly one prune');
       });
-      await act(async () => {
-        await app.sleep(20);
-      });
-      assert.deepEqual(app.names(), ['A', 'D']);
-      assert.equal(app.stats.stateChanges, 0); // the single prune happened during mount
-    });
-
-    test('usePruneOnMount under StrictMode prunes exactly once (timer)', async () => {
-      const app = mount({
-        strict: true,
-        initial: ['A', 'B', 'C', 'D'],
-        hooks: {
-          D: (navigation, route) =>
-            usePruneOnMount(navigation, { from: 'A', anchorKey: route.key }, { fallbackMs: 30 }),
-        },
-      });
-      await act(async () => {
-        await app.sleep(100);
-      });
-      assert.deepEqual(app.names(), ['A', 'D']);
-      assert.equal(app.stats.stateChanges, 1);
-    });
+    }
   });
 }
 

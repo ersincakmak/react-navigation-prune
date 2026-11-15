@@ -19,7 +19,8 @@ Removes intermediate screens from a React Navigation stack (e.g. everything betw
 - `src/listeners.ts` – `createPruneListeners` for a screen's `listeners` prop
 - `src/types.ts`, `src/matchers.ts`, `src/dev.ts` (`__DEV__`-guarded warnings)
 - `test/*.test.js` – `node:test` against the built CommonJS output (`lib/commonjs`). No Jest/Babel.
-- `test/integration/` – runs the same scenarios against real `@react-navigation/core` v5/v6/v7/v8, installed as npm aliases (devDependencies only).
+- `test/integration/` – runs the same scenarios (`scenarios.js` + `harness.js`) against real `@react-navigation/core`: v5/v6/v7 on React 18 (root devDependencies, npm aliases `core-vN`), v7/v8 on React 19 via the private workspace package `test/react19/` (its `setup.js` redirects every `require('react')` in that process to React 19 so there is a single React instance). A core that fails to load must fail the suite, never skip.
+- v8 removed navigator ids and `getParent(id)` takes a screen name there; `navigatorId` is only honoured when `getId` exists (v6/v7). Nested targeting otherwise relies on walking parents (`findTarget` in `src/actions.ts`).
 
 ## Commands
 - Package manager: **pnpm** (pinned via `packageManager`, use corepack). Do not add package-lock.json or yarn.lock.
@@ -32,4 +33,4 @@ Removes intermediate screens from a React Navigation stack (e.g. everything betw
 - `from` (string | string[] | predicate): flow start, searched in `[0, anchor)`.
 - `match`: `'nearest'` (default, closest to the anchor) or `'farthest'` (closest to the stack bottom) when `from` occurs more than once.
 - `inclusive`: also remove `from`. `keep`: routes in the range to keep anyway.
-- `anchorKey`: upper bound (kept); defaults to the focused route. `navigatorId`: target a parent navigator by `id` (v6+).
+- `anchorKey`: upper bound (kept); defaults to the focused route. `navigatorId`: pin a navigator by `id` (v6/v7). Default: current navigator, else nearest parent containing `from`.

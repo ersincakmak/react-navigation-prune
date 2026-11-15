@@ -99,7 +99,7 @@ These options are shared by `pruneStack`, `navigateAndPrune`, `usePruneOnMount`,
 | `inclusive` | `boolean` | `false` | Also remove the `from` screen itself. |
 | `keep` | `string \| readonly string[] \| (route, index) => boolean` | none | Screens inside the removed range that must be kept anyway. |
 | `anchorKey` | `string` | focused route | Key of the upper-bound route, which is always kept. Accepted by `pruneStack`, `usePruneOnMount` and `pruneState`. `navigateAndPrune` and `createPruneListeners` set it for you. |
-| `navigatorId` | `string` | current navigator | Target a parent navigator by its `id` prop. Requires v6+. |
+| `navigatorId` | `string` | auto | Pin a navigator by its `id` prop (v6/v7 only). Usually unnecessary: by default the current navigator is used and, if it does not contain `from`, the parents are searched automatically (all versions). |
 
 ### `match` with duplicate screen names
 
@@ -157,9 +157,12 @@ Useful for tests and custom actions. They take and return state objects and do n
 | React Navigation | Support |
 | --- | --- |
 | v5 | Supported. The package uses `dangerouslyGetState` and `dangerouslyGetParent` automatically. |
-| v6, v7, v8 | Supported. Uses `getState`, `getParent` and `getId`. |
+| v6, v7 | Supported. Uses `getState`, `getParent` and `getId`. |
+| v8 | Supported (tested against `8.0.0-alpha`, React 19). v8 removed navigator ids, so `navigatorId` is not available; automatic navigator detection covers nested cases. |
 
-- `navigatorId` requires v6+. On v5 it logs a development warning and falls back to the current navigator.
+- Nested navigators work with zero configuration in every version: if `from` is not in the current navigator, the parents are searched and the first one containing it is pruned. `navigateAndPrune` likewise pushes into the nearest navigator that declares the target screen.
+- `navigatorId` works on v6 and v7. On v5 and v8 it logs a development warning and falls back to automatic detection.
+- CI runs the same integration suite against real `@react-navigation/core` v5, v6, v7 (React 18) and v7, v8 (React 19).
 - `react` `>=16.8` is the only peer dependency.
 - Node.js `>=18` is required for tooling.
 
@@ -177,7 +180,7 @@ Useful for tests and custom actions. They take and return state objects and do n
 Yes. Both build on the same navigation state, and the package only reads and writes that state.
 
 **Which navigator does `navigateAndPrune` push onto?**
-The navigator that owns the `navigation` object you pass in. The `route.name` must be a screen registered on that navigator. If the screen lives in a parent navigator, pass `navigatorId` in the options (v6+), or call the function from a screen that belongs to that navigator.
+The navigator that owns the `navigation` object you pass in. The `route.name` must be a screen registered on that navigator. If the screen lives in a parent navigator, it is found automatically (the nearest navigator that declares it receives the push); on v6/v7 you can pin one with `navigatorId`.
 
 **Does the pushed screen still animate?**
 Yes. The new route is part of the same `RESET`, so it enters like a normal push. Only the screens in the removed range disappear.
