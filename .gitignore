@@ -13,3 +13,11 @@ example/*/dist/
 example/*/web-build/
 example/*/ios/
 example/*/android/
+
+# local agent / editor tooling (Argent MCP, skills, rules)
+.mcp.json
+.claude/
+.codex/
+.vscode/
+.agents/
+skills-lock.json
