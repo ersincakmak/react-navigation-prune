@@ -5,3 +5,11 @@ lib/
 coverage/
 # leftover prototype from an earlier attempt (not part of the package)
 react-navigation-prune/
+
+# example apps (standalone, not part of the workspace)
+example/*/node_modules/
+example/*/.expo/
+example/*/dist/
+example/*/web-build/
+example/*/ios/
+example/*/android/

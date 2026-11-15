@@ -1,0 +1,10 @@
+{
+  "expo": {
+    "name": "pruner-v6",
+    "slug": "pruner-example-v6",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "ios": { "supportsTablet": false },
+    "experiments": { "tsconfigPaths": false }
+  }
+}
