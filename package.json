@@ -29,7 +29,7 @@
     "clean": "rm -rf lib",
     "build": "pnpm clean && tsc -p tsconfig.build.json --module commonjs --outDir lib/commonjs && tsc -p tsconfig.build.json --module es2020 --outDir lib/module && tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/typescript && node -e \"require('fs').writeFileSync('lib/commonjs/package.json','{\\\"type\\\":\\\"commonjs\\\"}');require('fs').writeFileSync('lib/module/package.json','{\\\"type\\\":\\\"module\\\"}')\"",
     "typecheck": "tsc --noEmit",
-    "test": "pnpm build && node --test test/*.test.js",
+    "test": "pnpm build && node --test test/*.test.js test/integration/*.test.js",
     "prepublishOnly": "pnpm typecheck && pnpm test"
   },
   "keywords": [
@@ -48,7 +48,12 @@
   },
   "devDependencies": {
     "@types/react": "^18.3.31",
+    "core-v5": "npm:@react-navigation/core@^5.16.1",
+    "core-v6": "npm:@react-navigation/core@^6.4.17",
+    "core-v7": "npm:@react-navigation/core@^7.25.0",
+    "core-v8": "npm:@react-navigation/core@8.0.0-alpha.41",
     "react": "^18.3.1",
+    "react-test-renderer": "18.3.1",
     "typescript": "^5.9.3"
   },
   "engines": {

@@ -27,7 +27,13 @@ export function resolveNavigation(
   navigatorId?: string
 ): NavigationLike | undefined {
   if (navigatorId === undefined) return navigation;
-  if (typeof navigation.getId === 'function' && navigation.getId() === navigatorId) return navigation;
+  // `getId` exists only in v6+. v5's `getParent()` ignores its argument and
+  // would silently return the direct parent, so it must not be used here.
+  if (typeof navigation.getId !== 'function') {
+    warn('`navigatorId` requires React Navigation v6+. Using the current navigator.');
+    return navigation;
+  }
+  if (navigation.getId() === navigatorId) return navigation;
   if (typeof navigation.getParent === 'function') {
     try {
       const parent = navigation.getParent(navigatorId);
@@ -35,9 +41,6 @@ export function resolveNavigation(
     } catch {
       // v7+ may throw when the id is unknown; fall through to the warning
     }
-  } else {
-    warn('`navigatorId` requires React Navigation v6+. Using the current navigator.');
-    return navigation;
   }
   warn(`No navigator with id "${navigatorId}" found among parents.`);
   return undefined;
