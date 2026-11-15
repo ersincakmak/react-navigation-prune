@@ -119,7 +119,7 @@ function defineSuite(label, pkg, { major }) {
       assert.equal(app.stats.mounts[s.routes[1].key], 1);
     });
 
-    if (major >= 6 && major < 8) {
+    if (major >= 6) {
       test('navigatorId targets a parent navigator (nested)', () => {
         const app = mount(nestedSpec());
         const z = app.stats.routesByName.Z;

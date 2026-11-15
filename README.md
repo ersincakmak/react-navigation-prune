@@ -1,6 +1,6 @@
 # react-navigation-stack-pruner
 
-Remove intermediate screens from a React Navigation stack (everything between a flow's start screen and the current screen) in a **single `RESET`**. Works with React Navigation v5, v6, v7 and v8.
+Remove intermediate screens from a React Navigation stack (everything between a flow's start screen and the current screen) in a **single `RESET`**. Works with React Navigation v5, v6 and v7.
 
 [![npm version](https://img.shields.io/npm/v/react-navigation-stack-pruner.svg)](https://www.npmjs.com/package/react-navigation-stack-pruner)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/react-navigation-stack-pruner.svg)](https://bundlephobia.com/package/react-navigation-stack-pruner)
@@ -12,7 +12,7 @@ Remove intermediate screens from a React Navigation stack (everything between a 
 - **One update, no remounts.** A single `RESET` replaces the whole stack. Remaining route objects are reused, so their keys are preserved and screens are not remounted.
 - **No-op when there is nothing to do.** If nothing lies between the flow start and the current screen, nothing is dispatched.
 - **Zero dependencies.** Only `react` is used, and only as a peer dependency by the hooks.
-- **Version-agnostic.** Works with React Navigation v5, v6, v7 and v8.
+- **Version-agnostic.** Works with React Navigation v5, v6 and v7.
 
 ## Install
 
@@ -158,11 +158,11 @@ Useful for tests and custom actions. They take and return state objects and do n
 | --- | --- |
 | v5 | Supported. The package uses `dangerouslyGetState` and `dangerouslyGetParent` automatically. |
 | v6, v7 | Supported. Uses `getState`, `getParent` and `getId`. |
-| v8 | Supported (tested against `8.0.0-alpha`, React 19). v8 removed navigator ids, so `navigatorId` is not available; automatic navigator detection covers nested cases. |
 
 - Nested navigators work with zero configuration in every version: if `from` is not in the current navigator, the parents are searched and the first one containing it is pruned. `navigateAndPrune` likewise pushes into the nearest navigator that declares the target screen.
-- `navigatorId` works on v6 and v7. On v5 and v8 it logs a development warning and falls back to automatic detection.
-- CI runs the same integration suite against real `@react-navigation/core` v5, v6, v7 (React 18) and v7, v8 (React 19).
+- `navigatorId` works on v6 and v7. On v5 it logs a development warning and falls back to automatic detection.
+- CI runs the same integration suite against real `@react-navigation/core` v5, v6, v7 (React 18) and v7 (React 19).
+- React Navigation v8 is not supported yet; support will be added after its stable release.
 - `react` `>=16.8` is the only peer dependency.
 - Node.js `>=18` is required for tooling.
 

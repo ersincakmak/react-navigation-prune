@@ -10,7 +10,7 @@ import type {
   RouteToAdd,
 } from './types.js';
 
-/** Builds the RESET action by hand: same shape in v5 → v8, no imports needed. */
+/** Builds the RESET action by hand: same shape in v5 → v7, no imports needed. */
 export function resetAction(state: NavigationStateLike): ResetActionLike {
   return { type: 'RESET', payload: state };
 }
@@ -40,7 +40,7 @@ function supportsIds(navigation: NavigationLike): boolean {
 
 /**
  * Resolves the navigator for an explicit `navigatorId` (v6/v7). On versions
- * without navigator ids (v5, v8) it warns and returns the current navigation;
+ * without navigator ids (v5) it warns and returns the current navigation;
  * the target is then detected automatically from `from`.
  */
 export function resolveNavigation(
@@ -48,11 +48,11 @@ export function resolveNavigation(
   navigatorId?: string
 ): NavigationLike | undefined {
   if (navigatorId === undefined) return navigation;
-  // v5's `getParent()` ignores its argument and v8's takes a screen name, so
+  // v5's `getParent()` ignores its argument, so
   // only trust `getParent(id)` when `getId` exists (v6/v7).
   if (!supportsIds(navigation)) {
     warn(
-      '`navigatorId` requires React Navigation v6+ (v6/v7; v8 removed navigator ids). ' +
+      '`navigatorId` requires React Navigation v6+. ' +
         'The target navigator is detected automatically from `from` instead.'
     );
     return navigation;

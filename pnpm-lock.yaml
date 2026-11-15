@@ -35,9 +35,6 @@ importers:
       core-v7:
         specifier: npm:@react-navigation/core@^7
         version: '@react-navigation/core@7.25.0(react@19.3.1)'
-      core-v8:
-        specifier: npm:@react-navigation/core@next
-        version: '@react-navigation/core@8.0.0-alpha.41(react@19.3.1)'
       react:
         specifier: 19.3.1
         version: 19.3.1
@@ -64,11 +61,6 @@ packages:
     peerDependencies:
       react: '>= 18.2.0'
 
-  '@react-navigation/core@8.0.0-alpha.41':
-    resolution: {integrity: sha512-tdcXQ+2AcmAfU1GxGY2MiFVaM/qwpCKG05RHqWbzNC/pSNdNNRcEchAgvkOo/7G8NHViO4rpl9p6AK+Mqj7/OQ==}
-    peerDependencies:
-      react: '>= 19.2.0'
-
   '@react-navigation/routers@5.7.4':
     resolution: {integrity: sha512-0N202XAqsU/FlE53Nmh6GHyMtGm7g6TeC93mrFAFJOqGRKznT0/ail+cYlU6tNcPA9AHzZu1Modw1eoDINSliQ==}
     deprecated: This version is no longer supported
@@ -79,9 +71,6 @@ packages:
 
   '@react-navigation/routers@7.6.6':
     resolution: {integrity: sha512-h7YSfGDkgsJgivbxUeYS5nw2SXiPT2Y951k3lEnSKUEViaR6xbSOEl3WqPiJPagQCzt89dAM8T/N/NR/t+1uMg==}
-
-  '@react-navigation/routers@8.0.0-alpha.21':
-    resolution: {integrity: sha512-8da5MEzVlOuNvIOtuba4w9T4obkflpUWFRIUkrX7Lz164ieli7Wgt/6XbHW36kisShAAqDU08DVEh1+u24Y/YQ==}
 
   '@types/prop-types@15.7.15':
     resolution: {integrity: sha512-F6bEyamV9jKGAFBEmlQnesRPGOQqS2+Uwi0Em15xenOxHaf2hv6L8YCVn3rPdPJOiJfPiCnLIRyvwVaqMY3MIw==}
@@ -117,11 +106,6 @@ packages:
   nanoid@3.3.20:
     resolution: {integrity: sha512-uKdg2G3GNCKQn9byYOpxbGqrT2fGO5KRt5J/8b3pok8rT6qxGWF6hxMyJiEYtAf+FVyYuD9hRaDqX5uPFYJ4ZQ==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
-
-  nanoid@5.1.16:
-    resolution: {integrity: sha512-kVrnsrJqMR8+oLJnGEmSWw9BivK5mt7H3FZatVRjrc5wGqFYuBxX1yG7+A7Gi5AefkX6t/oCkizcQgpu0cY1dQ==}
-    engines: {node: ^18 || >=20}
     hasBin: true
 
   object-assign@4.1.1:
@@ -192,14 +176,6 @@ packages:
     peerDependencies:
       react: '>=16.8'
 
-  use-latest-callback@0.3.5:
-    resolution: {integrity: sha512-YDTKaeth5egzJLLKxGDvfoajkiZbNbLEaZnvnHXjSt5FDVy1WgPLwXXKdtBDIXDeakBrE4wBJuf2FTFBXzVw4Q==}
-    peerDependencies:
-      react: '>=16.8'
-
-  warn-once@0.1.1:
-    resolution: {integrity: sha512-VkQZJbO8zVImzYFteBXvBOZEl1qL175WH8VmZcxF2fZAoudNhNDvHi+doCaAEdU2l2vtcIwa2zn0QK5+I1HQ3Q==}
-
 snapshots:
 
   '@react-navigation/core@5.16.1(react@18.3.1)':
@@ -239,15 +215,6 @@ snapshots:
       react-is: 19.3.1
       use-latest-callback: 0.2.6(react@19.3.1)
 
-  '@react-navigation/core@8.0.0-alpha.41(react@19.3.1)':
-    dependencies:
-      '@react-navigation/routers': 8.0.0-alpha.21
-      fast-deep-equal: 3.1.3
-      react: 19.3.1
-      react-is: 19.3.1
-      use-latest-callback: 0.3.5(react@19.3.1)
-      warn-once: 0.1.1
-
   '@react-navigation/routers@5.7.4':
     dependencies:
       nanoid: 3.3.20
@@ -259,10 +226,6 @@ snapshots:
   '@react-navigation/routers@7.6.6':
     dependencies:
       nanoid: 3.3.20
-
-  '@react-navigation/routers@8.0.0-alpha.21':
-    dependencies:
-      nanoid: 5.1.16
 
   '@types/prop-types@15.7.15': {}
 
@@ -288,8 +251,6 @@ snapshots:
       js-tokens: 4.0.0
 
   nanoid@3.3.20: {}
-
-  nanoid@5.1.16: {}
 
   object-assign@4.1.1: {}
 
@@ -357,9 +318,3 @@ snapshots:
   use-latest-callback@0.2.6(react@19.3.1):
     dependencies:
       react: 19.3.1
-
-  use-latest-callback@0.3.5(react@19.3.1):
-    dependencies:
-      react: 19.3.1
-
-  warn-once@0.1.1: {}

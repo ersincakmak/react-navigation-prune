@@ -40,7 +40,6 @@ function createHarness(core) {
     const content = state.routes.map((route) =>
       h(React.Fragment, { key: route.key }, descriptors[route.key].render())
     );
-    if (typeof builder.render === 'function') return builder.render(content); // v8
     if (builder.NavigationContent) return h(builder.NavigationContent, null, content); // v6/v7
     return h(NavigationHelpersContext.Provider, { value: navigation }, content);
   }

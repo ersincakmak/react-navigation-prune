@@ -1,15 +1,14 @@
 # Examples
 
-Four minimal Expo apps to try every feature of `react-navigation-stack-pruner` by hand (or from an automation agent driving the iOS Simulator). They are **not** part of the published package, the root pnpm workspace or CI.
+Three minimal Expo apps to try every feature of `react-navigation-stack-pruner` by hand (or from an automation agent driving the iOS Simulator). They are **not** part of the published package, the root pnpm workspace or CI.
 
 | App | React Navigation | Notes |
 | --- | --- | --- |
-| `v5/` | `@react-navigation/native@5` + `stack@5` | deprecated, see known issues |
-| `v6/` | `@react-navigation/native@6` + `stack@6` | deprecated, see known issues |
-| `v7/` | `@react-navigation/native@7` + `stack@7` | |
-| `v8/` | `@react-navigation/native@8.0.0-alpha.51` + `stack@8.0.0-alpha.60` | pre-release |
+| `v5/` | `@react-navigation/native@5` + `stack@5` | Expo SDK 57 (RN 0.86, React 19.2) |
+| `v6/` | `@react-navigation/native@6` + `stack@6` | Expo SDK 57 (RN 0.86, React 19.2) |
+| `v7/` | `@react-navigation/native@7` + `stack@7` | Expo SDK 58 (RN 0.88, React 19.3) |
 
-All use Expo SDK 58 (React Native 0.88, React 19) and only modules available in Expo Go. They use the JS stack (`@react-navigation/stack`) because it emits `transitionEnd`.
+All use only modules available in Expo Go (`expo start --ios` installs the Expo Go build matching each SDK on the simulator). They use the JS stack (`@react-navigation/stack`) because it emits `transitionEnd`.
 
 ## Run
 
@@ -30,7 +29,7 @@ example/
     ui.tsx             Frame (version label, stack readout, mount counters) and Button
     mounts.ts          per-route-key mount counter
     navUtils.ts        v5/v6+ duck-typed navigation helpers
-  v5 v6 v7 v8/       App.tsx passes NavigationContainer + createStackNavigator to createDemoApp
+  v5 v6 v7/          App.tsx passes NavigationContainer + createStackNavigator to createDemoApp
 ```
 
 `shared/` never imports `@react-navigation/*`; each `App.tsx` supplies the version-specific pieces.
@@ -78,7 +77,18 @@ Scenario 2: the Payment to Success transition first shows the unpruned stack, th
 
 ## Known issues
 
-- v5 and v6 are deprecated. They bundle and type-check against RN 0.88 / React 19 here, but they are not supported on that stack, and runtime behaviour in Expo Go has not been exercised automatically. Do not expect fixes for incompatibilities.
+- v5 and v6 stay on Expo SDK 57: their `@react-navigation/stack` uses `InteractionManager`, which React Native 0.87+ removed (SDK 58 renders a "InteractionManager has been removed" error).
 - v5 `@react-navigation/stack` peers on `@react-native-community/masked-view` (auto-installed by pnpm). It only matters for the float header, which the demo disables.
-- v8 is an alpha (`8.0.0-alpha.51` / `stack 8.0.0-alpha.60`). It has no navigator ids, so the `navigatorId` button is hidden on v5 and v8.
-- Expo's `react-native-screens` / `gesture-handler` versions come from `npx expo install` for SDK 58 and are shared by all four apps.
+- v5 has no navigator ids, so the `navigatorId` button is hidden there.
+- React Navigation v8 is not covered until its stable release.
+- `react-native-screens` / `gesture-handler` versions come from `npx expo install --fix` for each app's SDK.
+
+## Verification log
+
+Run on the iOS Simulator (iPhone 17 Pro, iOS 26.0) with Argent driving Expo Go, 2026-11-16. Every scenario above was executed and each step asserted the `Stack:` / `Local:` readout and, for scenarios 1–4, the `Mounts (all)` line.
+
+| App | Scenarios 1–7 | Notes |
+| --- | --- | --- |
+| v5 (SDK 57) | pass (94/94 steps) | `navigatorId` variant hidden (no ids in v5) |
+| v6 (SDK 57) | pass (94/94 steps) | |
+| v7 (SDK 58) | pass | all 7 scenarios, kept screens never remounted |

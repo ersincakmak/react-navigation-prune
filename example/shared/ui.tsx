@@ -52,8 +52,13 @@ export function Frame(props: {
   const { version, navigation, route } = props;
   const { info, refresh } = useStackInfo(navigation);
 
-  React.useEffect(() => {
+  // Count real component instances, not effect runs: some stacks keep hidden
+  // screens in React <Activity>, which re-runs effects without remounting.
+  React.useState(() => {
     recordMount(route.key, route.name);
+    return true;
+  });
+  React.useEffect(() => {
     refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

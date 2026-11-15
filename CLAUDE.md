@@ -1,11 +1,11 @@
 # react-navigation-stack-pruner
 
-Removes intermediate screens from a React Navigation stack (e.g. everything between a flow's start screen and the current screen) in **one RESET dispatch**, for React Navigation v5, v6, v7 and v8.
+Removes intermediate screens from a React Navigation stack (e.g. everything between a flow's start screen and the current screen) in **one RESET dispatch**, for React Navigation v5, v6 and v7. (v8 is out of scope until its stable release.)
 
 ## Hard rules
 - **Zero runtime dependencies.** `dependencies` stays `{}`. Never import from `@react-navigation/*` in `src/` (not even types). Use the structural types in `src/types.ts` and duck typing (`getState ?? dangerouslyGetState`, `getParent ?? dangerouslyGetParent`).
 - `react` is the only peer dependency and is used only in `src/hooks.ts`.
-- Build the action by hand: `{ type: 'RESET', payload: state }` (`resetAction`). Dispatch via the thunk form `navigation.dispatch(state => action)`, which exists in v5→v8.
+- Build the action by hand: `{ type: 'RESET', payload: state }` (`resetAction`). Dispatch via the thunk form `navigation.dispatch(state => action)`, which exists in v5→v7.
 - Never mutate state. Reuse route objects so keys are preserved (no remounts).
 - `pruneState` must return the **same reference** when nothing changes; `pruneStack` must not dispatch in that case.
 - Keep everything O(n), single pass, no allocations in hot paths beyond the new routes array.
@@ -19,8 +19,8 @@ Removes intermediate screens from a React Navigation stack (e.g. everything betw
 - `src/listeners.ts` – `createPruneListeners` for a screen's `listeners` prop
 - `src/types.ts`, `src/matchers.ts`, `src/dev.ts` (`__DEV__`-guarded warnings)
 - `test/*.test.js` – `node:test` against the built CommonJS output (`lib/commonjs`). No Jest/Babel.
-- `test/integration/` – runs the same scenarios (`scenarios.js` + `harness.js`) against real `@react-navigation/core`: v5/v6/v7 on React 18 (root devDependencies, npm aliases `core-vN`), v7/v8 on React 19 via the private workspace package `test/react19/` (its `setup.js` redirects every `require('react')` in that process to React 19 so there is a single React instance). A core that fails to load must fail the suite, never skip.
-- v8 removed navigator ids and `getParent(id)` takes a screen name there; `navigatorId` is only honoured when `getId` exists (v6/v7). Nested targeting otherwise relies on walking parents (`findTarget` in `src/actions.ts`).
+- `test/integration/` – runs the same scenarios (`scenarios.js` + `harness.js`) against real `@react-navigation/core`: v5/v6/v7 on React 18 (root devDependencies, npm aliases `core-vN`), v7 on React 19 via the private workspace package `test/react19/` (its `setup.js` redirects every `require('react')` in that process to React 19 so there is a single React instance). A core that fails to load must fail the suite, never skip.
+- `navigatorId` is only honoured when `getId` exists (v6/v7); v5's `getParent()` ignores its argument. Nested targeting otherwise relies on walking parents (`findTarget` in `src/actions.ts`).
 
 ## Commands
 - Package manager: **pnpm** (pinned via `packageManager`, use corepack). Do not add package-lock.json or yarn.lock.

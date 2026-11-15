@@ -1,6 +1,6 @@
 /**
  * Minimal structural types. We intentionally do NOT import anything from
- * `@react-navigation/*` so the package works with v5, v6, v7 and v8 and has
+ * `@react-navigation/*` so the package works with v5, v6 and v7 and has
  * zero runtime (and zero type) dependencies.
  */
 
@@ -68,7 +68,7 @@ export interface PruneOptions {
   /** Screens inside the removed range that must be kept anyway. */
   keep?: RouteMatcher;
   /**
-   * Pin a navigator by its `id` prop (v6/v7 only; v8 removed navigator ids).
+   * Pin a navigator by its `id` prop (v6/v7).
    * Usually unnecessary: without it, the current navigator is used, and if it
    * does not contain `from`, its parents are searched automatically.
    */

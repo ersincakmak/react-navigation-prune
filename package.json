@@ -1,7 +1,7 @@
 {
   "name": "react-navigation-stack-pruner",
   "version": "0.1.0",
-  "description": "Zero-dependency, version-agnostic helpers to remove intermediate screens from a React Navigation stack (v5, v6, v7, v8) in a single state update.",
+  "description": "Zero-dependency, version-agnostic helpers to remove intermediate screens from a React Navigation stack (v5, v6, v7) in a single state update.",
   "license": "MIT",
   "sideEffects": false,
   "main": "lib/commonjs/index.js",

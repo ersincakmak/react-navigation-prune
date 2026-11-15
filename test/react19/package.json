@@ -1,10 +1,9 @@
 {
   "name": "react19-test-env",
   "private": true,
-  "description": "Isolated React 19 environment for the React Navigation v7/v8 integration suites.",
+  "description": "Isolated React 19 environment for the React Navigation v7 integration suite.",
   "dependencies": {
     "core-v7": "npm:@react-navigation/core@^7",
-    "core-v8": "npm:@react-navigation/core@next",
     "react": "19.3.1",
     "react-test-renderer": "19.3.1"
   }
