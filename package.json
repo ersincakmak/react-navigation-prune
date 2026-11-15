@@ -27,10 +27,10 @@
   ],
   "scripts": {
     "clean": "rm -rf lib",
-    "build": "npm run clean && tsc -p tsconfig.build.json --module commonjs --outDir lib/commonjs && tsc -p tsconfig.build.json --module es2020 --outDir lib/module && tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/typescript && node -e \"require('fs').writeFileSync('lib/commonjs/package.json','{\\\"type\\\":\\\"commonjs\\\"}');require('fs').writeFileSync('lib/module/package.json','{\\\"type\\\":\\\"module\\\"}')\"",
+    "build": "pnpm clean && tsc -p tsconfig.build.json --module commonjs --outDir lib/commonjs && tsc -p tsconfig.build.json --module es2020 --outDir lib/module && tsc -p tsconfig.build.json --declaration --emitDeclarationOnly --outDir lib/typescript && node -e \"require('fs').writeFileSync('lib/commonjs/package.json','{\\\"type\\\":\\\"commonjs\\\"}');require('fs').writeFileSync('lib/module/package.json','{\\\"type\\\":\\\"module\\\"}')\"",
     "typecheck": "tsc --noEmit",
-    "test": "npm run build && node --test test/*.test.js",
-    "prepublishOnly": "npm run typecheck && npm test"
+    "test": "pnpm build && node --test test/*.test.js",
+    "prepublishOnly": "pnpm typecheck && pnpm test"
   },
   "keywords": [
     "react-native",
@@ -53,5 +53,6 @@
   },
   "engines": {
     "node": ">=18"
-  }
+  },
+  "packageManager": "pnpm@10.33.0"
 }

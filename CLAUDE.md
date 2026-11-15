@@ -22,10 +22,11 @@ Removes intermediate screens from a React Navigation stack (e.g. everything betw
 - `test/integration/` – runs the same scenarios against real `@react-navigation/core` v5/v6/v7/v8, installed as npm aliases (devDependencies only).
 
 ## Commands
-- `npm run typecheck`
-- `npm run build` → `lib/commonjs`, `lib/module`, `lib/typescript`
-- `npm test` → build + all tests
-- `npm pack --dry-run` → check the published files
+- Package manager: **pnpm** (pinned via `packageManager`, use corepack). Do not add package-lock.json or yarn.lock.
+- `pnpm typecheck`
+- `pnpm build` → `lib/commonjs`, `lib/module`, `lib/typescript`
+- `pnpm test` → build + all tests
+- `pnpm pack --dry-run` → check the published files
 
 ## Options semantics
 - `from` (string | string[] | predicate): flow start, searched in `[0, anchor)`.
