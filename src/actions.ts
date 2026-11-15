@@ -41,7 +41,7 @@ function supportsIds(navigation: NavigationLike): boolean {
 /**
  * Resolves the navigator for an explicit `navigatorId` (v6/v7). On versions
  * without navigator ids (v5) it warns and returns the current navigation;
- * the target is then detected automatically from `from`.
+ * the target is then detected automatically from the start screen.
  */
 export function resolveNavigation(
   navigation: NavigationLike,
@@ -53,7 +53,7 @@ export function resolveNavigation(
   if (!supportsIds(navigation)) {
     warn(
       '`navigatorId` requires React Navigation v6+. ' +
-        'The target navigator is detected automatically from `from` instead.'
+        'The target navigator is detected automatically from the start screen instead.'
     );
     return navigation;
   }
@@ -112,14 +112,14 @@ function findTarget(
 }
 
 /**
- * Removes the screens between the flow start (`from`) and the focused screen
+ * Removes the screens between the flow start (`after` / `from`) and the focused screen
  * in a single RESET. Returns `true` if something was removed. No dispatch (and
  * no re-render) happens when there is nothing to remove.
  *
- * If `from` is not in the current navigator, the parents are searched and the
+ * If the start screen is not in the current navigator, the parents are searched and the
  * first navigator containing it is pruned (unless `navigatorId` pins one).
  */
-export function pruneStack(
+export function prune(
   navigation: NavigationLike,
   options: PruneOptions & { anchorKey?: string }
 ): boolean {
@@ -128,7 +128,7 @@ export function pruneStack(
   if (!start) return false;
   const found = findTarget(start, options, !explicit);
   if (!found) {
-    warn('Could not find the `from` screen in the current or any parent navigator.');
+    warn('Could not find the start screen in the current or any parent navigator.');
     return false;
   }
   const { target, state, anchorKey } = found;
@@ -148,7 +148,7 @@ export function pruneStack(
  * Pure: pushes `route` on top of the focused route, then removes everything
  * between the flow start and the new route.
  */
-export function navigateAndPruneState<S extends NavigationStateLike>(
+export function pushAndPruneState<S extends NavigationStateLike>(
   state: S,
   route: RouteLike,
   options: PruneStateOptions
@@ -164,7 +164,7 @@ export function navigateAndPruneState<S extends NavigationStateLike>(
  * update — the new screen animates in as a normal push and nothing flickers.
  * `route.name` must belong to the target navigator.
  */
-export function navigateAndPrune(
+export function pushAndPrune(
   navigation: NavigationLike,
   route: RouteToAdd,
   options: PruneOptions
@@ -190,6 +190,6 @@ export function navigateAndPrune(
     if (state.routeNames && state.routeNames.indexOf(route.name) === -1) {
       warn(`Screen "${route.name}" is not part of the target navigator.`);
     }
-    return resetAction(navigateAndPruneState(state, newRoute, stateOptions));
+    return resetAction(pushAndPruneState(state, newRoute, stateOptions));
   });
 }

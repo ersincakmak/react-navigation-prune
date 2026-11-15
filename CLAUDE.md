@@ -1,4 +1,4 @@
-# react-navigation-stack-pruner
+# react-navigation-prune
 
 Removes intermediate screens from a React Navigation stack (e.g. everything between a flow's start screen and the current screen) in **one RESET dispatch**, for React Navigation v5, v6 and v7. (v8 is out of scope until its stable release.)
 
@@ -7,16 +7,16 @@ Removes intermediate screens from a React Navigation stack (e.g. everything betw
 - `react` is the only peer dependency and is used only in `src/hooks.ts`.
 - Build the action by hand: `{ type: 'RESET', payload: state }` (`resetAction`). Dispatch via the thunk form `navigation.dispatch(state => action)`, which exists in v5→v7.
 - Never mutate state. Reuse route objects so keys are preserved (no remounts).
-- `pruneState` must return the **same reference** when nothing changes; `pruneStack` must not dispatch in that case.
+- `pruneState` must return the **same reference** when nothing changes; `prune` must not dispatch in that case.
 - Keep everything O(n), single pass, no allocations in hot paths beyond the new routes array.
 - Relative imports in `src/` use the `.js` extension (valid ESM output).
 - Git commits: no `Co-Authored-By` or other Claude/AI attribution lines. The repo owner is the only author.
 
 ## Layout
 - `src/pruneState.ts` – pure core (`pruneState`, `findStartIndex`, `createRouteKey`)
-- `src/actions.ts` – `pruneStack`, `navigateAndPrune`, `navigateAndPruneState`, `resolveNavigation`, `resetAction`
-- `src/hooks.ts` – `usePruneOnMount` (transitionEnd + fallback timer, idempotent)
-- `src/listeners.ts` – `createPruneListeners` for a screen's `listeners` prop
+- `src/actions.ts` – `prune`, `pushAndPrune`, `pushAndPruneState`, `resolveNavigation`, `resetAction`
+- `src/hooks.ts` – `usePrune` (transitionEnd + fallback timer, idempotent)
+- `src/listeners.ts` – `pruneListeners` for a screen's `listeners` prop
 - `src/types.ts`, `src/matchers.ts`, `src/dev.ts` (`__DEV__`-guarded warnings)
 - `test/*.test.js` – `node:test` against the built CommonJS output (`lib/commonjs`). No Jest/Babel.
 - `test/integration/` – runs the same scenarios (`scenarios.js` + `harness.js`) against real `@react-navigation/core`: v5/v6/v7 on React 18 (root devDependencies, npm aliases `core-vN`), v7 on React 19 via the private workspace package `test/react19/` (its `setup.js` redirects every `require('react')` in that process to React 19 so there is a single React instance). A core that fails to load must fail the suite, never skip.
@@ -30,7 +30,7 @@ Removes intermediate screens from a React Navigation stack (e.g. everything betw
 - `pnpm pack --dry-run` → check the published files
 
 ## Options semantics
-- `from` (string | string[] | predicate): flow start, searched in `[0, anchor)`.
-- `match`: `'nearest'` (default, closest to the anchor) or `'farthest'` (closest to the stack bottom) when `from` occurs more than once.
-- `inclusive`: also remove `from`. `keep`: routes in the range to keep anyway.
-- `anchorKey`: upper bound (kept); defaults to the focused route. `navigatorId`: pin a navigator by `id` (v6/v7). Default: current navigator, else nearest parent containing `from`.
+- Exactly one of `after` / `from` (string | string[] | predicate): the flow start, searched in `[0, anchor)`. `after` keeps it, `from` removes it too (`PruneStart` union type).
+- `match`: `'nearest'` (default, closest to the anchor) or `'farthest'` (closest to the stack bottom) when the start screen occurs more than once.
+- `keep`: routes in the range to keep anyway.
+- `anchorKey`: upper bound (kept); defaults to the focused route. `navigatorId`: pin a navigator by `id` (v6/v7). Default: current navigator, else nearest parent containing the start screen.

@@ -4,7 +4,7 @@ const assert = require('node:assert/strict');
 const pruner = require('../../lib/commonjs');
 const { createHarness, loadCore, act } = require('./harness');
 
-const { pruneStack, navigateAndPrune, usePruneOnMount, createPruneListeners } = pruner;
+const { prune, pushAndPrune, usePrune, pruneListeners } = pruner;
 
 function captureWarnings() {
   const warnings = [];
@@ -27,14 +27,14 @@ function defineSuite(label, pkg, { major }) {
       ...extra,
     });
 
-    test('pruneStack removes the middle in one state change without remounting', () => {
+    test('prune removes the middle in one state change without remounting', () => {
       const app = mount(base());
       const keys = app.keys();
       const nav = app.navOf('D');
       app.resetCount();
       let result;
       act(() => {
-        result = pruneStack(nav, { from: 'A' });
+        result = prune(nav, { after: 'A' });
       });
       assert.equal(result, true);
       assert.deepEqual(app.names(), ['A', 'D']);
@@ -54,13 +54,13 @@ function defineSuite(label, pkg, { major }) {
       app.resetCount();
       let result;
       act(() => {
-        result = pruneStack(app.navOf('B'), { from: 'A' });
+        result = prune(app.navOf('B'), { after: 'A' });
       });
       assert.equal(result, false);
       assert.equal(app.stats.stateChanges, 0);
       assert.equal(app.state(), before);
       act(() => {
-        result = pruneStack(app.navOf('B'), { from: 'Nope' });
+        result = prune(app.navOf('B'), { after: 'Nope' });
       });
       assert.equal(result, false);
       assert.equal(app.stats.stateChanges, 0);
@@ -70,24 +70,24 @@ function defineSuite(label, pkg, { major }) {
     test("match: nearest (default) vs 'farthest' with duplicate names", () => {
       const initial = ['A', 'X', 'B', 'X', 'C', 'D'];
       let app = mount({ initial });
-      act(() => pruneStack(app.navOf('D'), { from: 'X' }));
+      act(() => prune(app.navOf('D'), { after: 'X' }));
       assert.deepEqual(app.names(), ['A', 'X', 'B', 'X', 'D']);
 
       app = mount({ initial });
-      act(() => pruneStack(app.navOf('D'), { from: 'X', match: 'farthest' }));
+      act(() => prune(app.navOf('D'), { after: 'X', match: 'farthest' }));
       assert.deepEqual(app.names(), ['A', 'X', 'D']);
     });
 
-    test('inclusive removes the start screen too', () => {
+    test('from removes the start screen too', () => {
       const app = mount(base());
-      act(() => pruneStack(app.navOf('D'), { from: 'B', inclusive: true }));
+      act(() => prune(app.navOf('D'), { from: 'B' }));
       assert.deepEqual(app.names(), ['A', 'D']);
     });
 
     test('keep preserves matching routes in the range', () => {
       const app = mount({ initial: ['A', 'B', 'C', 'D', 'E'] });
       const keys = app.keys();
-      act(() => pruneStack(app.navOf('E'), { from: 'A', keep: 'C' }));
+      act(() => prune(app.navOf('E'), { after: 'A', keep: 'C' }));
       assert.deepEqual(app.names(), ['A', 'C', 'E']);
       assert.equal(app.keys()[1], keys[2]);
       assert.equal(app.stats.unmounts[keys[2]], undefined);
@@ -96,17 +96,17 @@ function defineSuite(label, pkg, { major }) {
     test('anchorKey keeps screens above the anchor', () => {
       const app = mount(base());
       const keys = app.keys();
-      act(() => pruneStack(app.navOf('D'), { from: 'A', anchorKey: keys[2] }));
+      act(() => prune(app.navOf('D'), { after: 'A', anchorKey: keys[2] }));
       assert.deepEqual(app.names(), ['A', 'C', 'D']);
       assert.equal(app.state().index, 2);
     });
 
-    test('navigateAndPrune pushes and prunes atomically', () => {
+    test('pushAndPrune pushes and prunes atomically', () => {
       const app = mount({ initial: ['A', 'B', 'C'], extraScreens: ['Done'] });
       const keys = app.keys();
       app.resetCount();
       act(() =>
-        navigateAndPrune(app.navOf('C'), { name: 'Done', params: { ok: 1 } }, { from: 'A' })
+        pushAndPrune(app.navOf('C'), { name: 'Done', params: { ok: 1 } }, { after: 'A' })
       );
       assert.equal(app.stats.stateChanges, 1);
       assert.deepEqual(app.names(), ['A', 'Done']);
@@ -127,7 +127,7 @@ function defineSuite(label, pkg, { major }) {
         app.resetCount();
         let result;
         act(() => {
-          result = pruneStack(zNav, { from: 'A', navigatorId: 'root' });
+          result = prune(zNav, { after: 'A', navigatorId: 'root' });
         });
         assert.equal(result, true);
         assert.deepEqual(app.names(), ['A', 'Flow']);
@@ -148,7 +148,7 @@ function defineSuite(label, pkg, { major }) {
           app.resetCount();
           let result;
           act(() => {
-            result = pruneStack(zNav, { from: 'A', navigatorId: 'nope' });
+            result = prune(zNav, { after: 'A', navigatorId: 'nope' });
           });
           assert.equal(result, false);
           assert.equal(app.stats.stateChanges, 0);
@@ -156,7 +156,7 @@ function defineSuite(label, pkg, { major }) {
           assert.ok(cap.warnings.some((w) => /nope/.test(w)), 'warns about unknown id');
 
           act(() => {
-            result = pruneStack(zNav, { from: 'X', navigatorId: 'inner' });
+            result = prune(zNav, { after: 'X', navigatorId: 'inner' });
           });
           assert.equal(result, true);
           assert.deepEqual(
@@ -174,7 +174,7 @@ function defineSuite(label, pkg, { major }) {
           const app = mount(nestedSpec({ outerId: undefined }));
           const zNav = app.navOfKey(app.stats.routesByName.Z.key);
           act(() => {
-            pruneStack(zNav, { from: 'X', navigatorId: 'root' });
+            prune(zNav, { after: 'X', navigatorId: 'root' });
           });
           assert.ok(cap.warnings.some((w) => /v6\+/.test(w)));
           assert.deepEqual(
@@ -194,7 +194,7 @@ function defineSuite(label, pkg, { major }) {
       app.resetCount();
       let result;
       act(() => {
-        result = pruneStack(zNav, { from: 'A', anchorKey: z.key });
+        result = prune(zNav, { after: 'A', anchorKey: z.key });
       });
       assert.equal(result, true);
       assert.deepEqual(app.names(), ['A', 'Flow']);
@@ -203,53 +203,53 @@ function defineSuite(label, pkg, { major }) {
       assert.equal(app.stats.unmounts[z.key], undefined, 'nested screen not remounted');
       // the inner navigator is preferred when it contains `from`
       act(() => {
-        result = pruneStack(zNav, { from: 'X' });
+        result = prune(zNav, { after: 'X' });
       });
       assert.equal(result, true);
       assert.deepEqual(app.state().routes[1].state.routes.map((r) => r.name), ['X', 'Z']);
       // not found anywhere -> no-op
       act(() => {
-        result = pruneStack(zNav, { from: 'Nope' });
+        result = prune(zNav, { after: 'Nope' });
       });
       assert.equal(result, false);
     });
 
-    test('navigateAndPrune from a nested screen pushes into the navigator declaring it', () => {
+    test('pushAndPrune from a nested screen pushes into the navigator declaring it', () => {
       const app = mount(nestedSpec({ outerId: undefined, extraScreens: ['Done'], nested: { host: 'Flow', initial: ['X', 'Y', 'Z'] } }));
       const zNav = app.navOfKey(app.stats.routesByName.Z.key);
       app.resetCount();
       act(() => {
-        navigateAndPrune(zNav, { name: 'Done' }, { from: 'A' });
+        pushAndPrune(zNav, { name: 'Done' }, { after: 'A' });
       });
       assert.deepEqual(app.names(), ['A', 'Done']);
       assert.equal(app.stats.stateChanges, 1);
     });
 
-    test('createPruneListeners via the screen listeners prop (focus)', () => {
+    test('pruneListeners via the screen listeners prop (focus)', () => {
       const app = mount({
         initial: ['A', 'B', 'C', 'D'],
-        listeners: { D: createPruneListeners({ from: 'A' }, { event: 'focus' }) },
+        listeners: { D: pruneListeners({ after: 'A' }, { event: 'focus' }) },
       });
       assert.deepEqual(app.names(), ['A', 'D']);
     });
 
-    test("usePruneOnMount when: 'immediate' prunes right after mount", () => {
+    test("usePrune when: 'immediate' prunes right after mount", () => {
       const app = mount({
         initial: ['A', 'B', 'C', 'D'],
         hooks: {
           D: (navigation, route) =>
-            usePruneOnMount(navigation, { from: 'A', anchorKey: route.key }, { when: 'immediate' }),
+            usePrune(navigation, { after: 'A', anchorKey: route.key }, { when: 'immediate' }),
         },
       });
       assert.deepEqual(app.names(), ['A', 'D']);
     });
 
-    test('usePruneOnMount default falls back to the timer', async () => {
+    test('usePrune default falls back to the timer', async () => {
       const app = mount({
         initial: ['A', 'B', 'C', 'D'],
         hooks: {
           D: (navigation, route) =>
-            usePruneOnMount(navigation, { from: 'A', anchorKey: route.key }, { fallbackMs: 30 }),
+            usePrune(navigation, { after: 'A', anchorKey: route.key }, { fallbackMs: 30 }),
         },
       });
       assert.deepEqual(app.names(), ['A', 'B', 'C', 'D']);
@@ -263,14 +263,14 @@ function defineSuite(label, pkg, { major }) {
     // StrictMode double-runs effects of a screen pushed onto a mounted
     // navigator (the real-world case). Exactly one prune must land.
     for (const when of ['immediate', 'transitionEnd']) {
-      test(`usePruneOnMount under StrictMode prunes exactly once (${when})`, async () => {
+      test(`usePrune under StrictMode prunes exactly once (${when})`, async () => {
         const app = mount({
           strict: true,
           initial: ['A', 'B', 'C'],
           extraScreens: ['D'],
           hooks: {
             D: (navigation, route) =>
-              usePruneOnMount(navigation, { from: 'A', anchorKey: route.key }, { when, fallbackMs: 30 }),
+              usePrune(navigation, { after: 'A', anchorKey: route.key }, { when, fallbackMs: 30 }),
           },
         });
         app.resetCount();

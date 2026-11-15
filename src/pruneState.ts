@@ -1,5 +1,5 @@
 import { matches } from './matchers.js';
-import type { NavigationStateLike, PruneStateOptions } from './types.js';
+import type { NavigationStateLike, PruneStateOptions, RouteMatcher } from './types.js';
 
 /**
  * Finds the index of the flow start inside `[0, end)`.
@@ -7,11 +7,12 @@ import type { NavigationStateLike, PruneStateOptions } from './types.js';
  */
 export function findStartIndex(
   state: NavigationStateLike,
-  options: Pick<PruneStateOptions, 'from' | 'match'>,
+  options: { after?: RouteMatcher; from?: RouteMatcher; match?: 'nearest' | 'farthest' },
   end: number
 ): number {
   const { routes } = state;
-  const { from } = options;
+  const from = options.after ?? options.from;
+  if (from === undefined) return -1;
   if (options.match === 'farthest') {
     for (let i = 0; i < end; i++) if (matches(from, routes[i]!, i)) return i;
   } else {
@@ -22,7 +23,7 @@ export function findStartIndex(
 
 /**
  * Pure function: returns a new state with the routes between the flow start
- * (`from`) and the anchor removed. Route objects (and therefore keys) are
+ * (`after` / `from`) and the anchor removed. Route objects (and therefore keys) are
  * reused, so remaining screens never remount.
  *
  * Returns the **same reference** when nothing would change; callers can use
@@ -49,7 +50,7 @@ export function pruneState<S extends NavigationStateLike>(state: S, options: Pru
   const start = findStartIndex(state, options, end);
   if (start < 0) return state;
 
-  const removeFrom = options.inclusive ? start : start + 1;
+  const removeFrom = options.after === undefined ? start : start + 1;
   if (removeFrom >= end) return state;
 
   const keep = options.keep;

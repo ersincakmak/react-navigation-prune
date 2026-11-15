@@ -54,34 +54,49 @@ export type RouteMatcher =
   | readonly string[]
   | ((route: RouteLike, index: number) => boolean);
 
-export interface PruneOptions {
-  /** The first screen of the flow. Everything between it and the anchor is removed. */
-  from: RouteMatcher;
+/**
+ * Where the flow starts. Pass exactly one:
+ * - `after`: keep this screen, remove everything between it and the anchor.
+ * - `from`: remove this screen too.
+ */
+export type PruneStart =
+  | { after: RouteMatcher; from?: undefined }
+  | { from: RouteMatcher; after?: undefined };
+
+export interface PruneCommonOptions {
   /**
-   * Which occurrence of `from` to use if it appears more than once.
+   * Which occurrence of the start screen to use if it appears more than once.
    * - `'nearest'` (default): the one closest to the anchor (top of the stack)
    * - `'farthest'`: the one closest to the bottom of the stack
    */
   match?: 'nearest' | 'farthest';
-  /** Also remove the `from` screen itself. Default `false`. */
-  inclusive?: boolean;
   /** Screens inside the removed range that must be kept anyway. */
   keep?: RouteMatcher;
-  /**
-   * Pin a navigator by its `id` prop (v6/v7).
-   * Usually unnecessary: without it, the current navigator is used, and if it
-   * does not contain `from`, its parents are searched automatically.
-   */
-  navigatorId?: string;
 }
 
-export interface PruneStateOptions extends Omit<PruneOptions, 'navigatorId'> {
-  /**
-   * Key of the route that acts as the upper bound (it is always kept).
-   * Defaults to the focused route (`state.routes[state.index]`).
-   */
-  anchorKey?: string;
-}
+export type PruneOptions = PruneStart &
+  PruneCommonOptions & {
+    /**
+     * Pin a navigator by its `id` prop (v6/v7).
+     * Usually unnecessary: without it, the current navigator is used, and if it
+     * does not contain the start screen, its parents are searched automatically.
+     */
+    navigatorId?: string;
+    /**
+     * Key of the route that acts as the upper bound (it is always kept).
+     * Defaults to the focused route.
+     */
+    anchorKey?: string;
+  };
+
+export type PruneStateOptions = PruneStart &
+  PruneCommonOptions & {
+    /**
+     * Key of the route that acts as the upper bound (it is always kept).
+     * Defaults to the focused route (`state.routes[state.index]`).
+     */
+    anchorKey?: string;
+  };
 
 export interface RouteToAdd {
   name: string;

@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react';
-import { pruneStack } from './actions.js';
+import { prune } from './actions.js';
 import type { NavigationLike, PruneOptions } from './types.js';
 
 declare function setTimeout(cb: () => void, ms: number): unknown;
 declare function clearTimeout(handle: unknown): void;
 
-export interface PruneOnMountConfig {
+export interface UsePruneConfig {
   /**
    * - `'transitionEnd'` (default): prune after the screen's enter animation, so
    *   no state change happens mid-animation. Falls back to a timer when the
@@ -26,10 +26,10 @@ export interface PruneOnMountConfig {
  *
  * Idempotent: running twice (e.g. React StrictMode) is a no-op the second time.
  */
-export function usePruneOnMount(
+export function usePrune(
   navigation: NavigationLike,
   options: PruneOptions & { anchorKey?: string },
-  config: PruneOnMountConfig = {}
+  config: UsePruneConfig = {}
 ): void {
   const optionsRef = useRef(options);
   optionsRef.current = options;
@@ -41,7 +41,7 @@ export function usePruneOnMount(
     const run = () => {
       if (done) return;
       done = true;
-      pruneStack(navigation, optionsRef.current);
+      prune(navigation, optionsRef.current);
     };
 
     if (when === 'immediate' || typeof navigation.addListener !== 'function') {

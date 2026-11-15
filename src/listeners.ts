@@ -1,15 +1,15 @@
-import { pruneStack } from './actions.js';
+import { prune } from './actions.js';
 import type { NavigationLike, PruneOptions, RouteLike } from './types.js';
 
 /**
  * Declarative variant for a screen's `listeners` prop (v5+):
  *
- * <Stack.Screen name="Success" listeners={createPruneListeners({ from: 'Cart' })} />
+ * <Stack.Screen name="Success" listeners={pruneListeners({ after: 'Cart' })} />
  *
  * Uses the screen's own `route.key` as the anchor, so it is exact even with
  * duplicate screen names.
  */
-export function createPruneListeners(
+export function pruneListeners(
   options: PruneOptions,
   config: { event?: 'focus' | 'transitionEnd' } = {}
 ) {
@@ -17,7 +17,7 @@ export function createPruneListeners(
   return ({ navigation, route }: { navigation: NavigationLike; route: RouteLike }) => ({
     [event]: (e: any) => {
       if (event === 'transitionEnd' && e?.data?.closing) return;
-      pruneStack(navigation, { ...options, anchorKey: route.key });
+      prune(navigation, { ...options, anchorKey: route.key });
     },
   });
 }

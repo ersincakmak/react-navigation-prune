@@ -2,11 +2,11 @@
 // version-specific pieces (NavigationContainer + createStackNavigator).
 import * as React from 'react';
 import {
-  createPruneListeners,
-  navigateAndPrune,
-  pruneStack,
-  usePruneOnMount,
-} from 'react-navigation-stack-pruner';
+  pruneListeners,
+  pushAndPrune,
+  prune,
+  usePrune,
+} from 'react-navigation-prune';
 import { Button, Frame } from './ui';
 
 export interface DemoConfig {
@@ -20,7 +20,7 @@ export interface DemoConfig {
 
 type Mode = 'navigate' | 'hook' | 'listener' | 'imperative' | 'inclusive' | 'keep' | 'dup' | 'nested';
 
-const pruneListeners = createPruneListeners({ from: 'Cart' });
+const cartListeners = pruneListeners({ after: 'Cart' });
 
 export function createDemoApp(config: DemoConfig): React.ComponentType {
   const { version, NavigationContainer, supportsNavigatorId } = config;
@@ -44,12 +44,12 @@ export function createDemoApp(config: DemoConfig): React.ComponentType {
     return frame(
       p,
       <>
-        {go('btn-s1-navigate', '1. navigateAndPrune checkout', 'navigate')}
-        {go('btn-s2-hook', '2. usePruneOnMount', 'hook')}
-        {go('btn-s3-listener', '3. createPruneListeners', 'listener')}
-        {go('btn-s4-imperative', '4. imperative pruneStack', 'imperative')}
+        {go('btn-s1-navigate', '1. pushAndPrune checkout', 'navigate')}
+        {go('btn-s2-hook', '2. usePrune', 'hook')}
+        {go('btn-s3-listener', '3. pruneListeners', 'listener')}
+        {go('btn-s4-imperative', '4. imperative prune', 'imperative')}
         {go('btn-s5-duplicates', '5. duplicates (nearest / farthest)', 'dup')}
-        {go('btn-s6-inclusive', '6a. inclusive: true', 'inclusive')}
+        {go('btn-s6-inclusive', '6a. from (removes Cart too)', 'inclusive')}
         {go('btn-s6-keep', "6b. keep: ['Address']", 'keep')}
         {go('btn-s7-nested', '7. nested navigator', 'nested')}
       </>
@@ -81,12 +81,12 @@ export function createDemoApp(config: DemoConfig): React.ComponentType {
         <Button
           testID="btn-prune-nearest"
           title="prune nearest (match)"
-          onPress={() => pruneStack(p.navigation, { from: 'Cart', match: 'nearest' })}
+          onPress={() => prune(p.navigation, { after: 'Cart', match: 'nearest' })}
         />
         <Button
           testID="btn-prune-farthest"
           title="prune farthest (match)"
-          onPress={() => pruneStack(p.navigation, { from: 'Cart', match: 'farthest' })}
+          onPress={() => prune(p.navigation, { after: 'Cart', match: 'farthest' })}
         />
       </>
     );
@@ -108,15 +108,15 @@ export function createDemoApp(config: DemoConfig): React.ComponentType {
     let pay: () => void;
     switch (mode) {
       case 'navigate':
-        pay = () => navigateAndPrune(nav, { name: 'Success', params }, { from: 'Cart' });
+        pay = () => pushAndPrune(nav, { name: 'Success', params }, { after: 'Cart' });
         break;
       case 'inclusive':
         pay = () =>
-          navigateAndPrune(nav, { name: 'Success', params }, { from: 'Cart', inclusive: true });
+          pushAndPrune(nav, { name: 'Success', params }, { from: 'Cart' });
         break;
       case 'keep':
         pay = () =>
-          navigateAndPrune(nav, { name: 'Success', params }, { from: 'Cart', keep: ['Address'] });
+          pushAndPrune(nav, { name: 'Success', params }, { after: 'Cart', keep: ['Address'] });
         break;
       default: // hook, listener, imperative: plain push, pruning happens elsewhere
         pay = () => nav.push('Success', params);
@@ -128,8 +128,8 @@ export function createDemoApp(config: DemoConfig): React.ComponentType {
         {mode === 'imperative' && (
           <Button
             testID="btn-prune"
-            title="pruneStack({ from: 'Cart' })"
-            onPress={() => pruneStack(nav, { from: 'Cart' })}
+            title="prune({ after: 'Cart' })"
+            onPress={() => prune(nav, { after: 'Cart' })}
           />
         )}
       </>
@@ -138,9 +138,9 @@ export function createDemoApp(config: DemoConfig): React.ComponentType {
 
   function Success(p: any) {
     const mode: Mode = p.route.params?.mode;
-    usePruneOnMount(
+    usePrune(
       p.navigation,
-      { from: 'Cart', anchorKey: p.route.key },
+      { after: 'Cart', anchorKey: p.route.key },
       { enabled: mode === 'hook' }
     );
     return frame(p);
@@ -159,14 +159,14 @@ export function createDemoApp(config: DemoConfig): React.ComponentType {
       <>
         <Button
           testID="btn-prune-auto"
-          title="pruneStack({ from: 'Cart' }) (auto parent)"
-          onPress={() => pruneStack(p.navigation, { from: 'Cart' })}
+          title="prune({ after: 'Cart' }) (auto parent)"
+          onPress={() => prune(p.navigation, { after: 'Cart' })}
         />
         {supportsNavigatorId && (
           <Button
             testID="btn-prune-id"
-            title="pruneStack({ from: 'Cart', navigatorId: 'root' })"
-            onPress={() => pruneStack(p.navigation, { from: 'Cart', navigatorId: 'root' })}
+            title="prune({ after: 'Cart', navigatorId: 'root' })"
+            onPress={() => prune(p.navigation, { after: 'Cart', navigatorId: 'root' })}
           />
         )}
       </>
@@ -200,7 +200,7 @@ export function createDemoApp(config: DemoConfig): React.ComponentType {
             name="Success"
             component={Success}
             listeners={(lp: any) =>
-              lp.route.params?.mode === 'listener' ? pruneListeners(lp) : {}
+              lp.route.params?.mode === 'listener' ? cartListeners(lp) : {}
             }
           />
           <Outer.Screen name="Nested" component={Nested} />

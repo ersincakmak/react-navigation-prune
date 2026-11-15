@@ -1,5 +1,5 @@
 {
-  "name": "react-navigation-stack-pruner",
+  "name": "react-navigation-prune",
   "version": "0.1.0",
   "description": "Zero-dependency, version-agnostic helpers to remove intermediate screens from a React Navigation stack (v5, v6, v7) in a single state update.",
   "license": "MIT",

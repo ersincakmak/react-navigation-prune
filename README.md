@@ -1,10 +1,10 @@
-# react-navigation-stack-pruner
+# react-navigation-prune
 
 Remove intermediate screens from a React Navigation stack (everything between a flow's start screen and the current screen) in a **single `RESET`**. Works with React Navigation v5, v6 and v7.
 
-[![npm version](https://img.shields.io/npm/v/react-navigation-stack-pruner.svg)](https://www.npmjs.com/package/react-navigation-stack-pruner)
-[![bundle size](https://img.shields.io/bundlephobia/minzip/react-navigation-stack-pruner.svg)](https://bundlephobia.com/package/react-navigation-stack-pruner)
-[![license](https://img.shields.io/npm/l/react-navigation-stack-pruner.svg)](./LICENSE)
+[![npm version](https://img.shields.io/npm/v/react-navigation-prune.svg)](https://www.npmjs.com/package/react-navigation-prune)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/react-navigation-prune.svg)](https://bundlephobia.com/package/react-navigation-prune)
+[![license](https://img.shields.io/npm/l/react-navigation-prune.svg)](./LICENSE)
 
 ## Why
 
@@ -17,29 +17,29 @@ Remove intermediate screens from a React Navigation stack (everything between a 
 ## Install
 
 ```sh
-npm install react-navigation-stack-pruner
+npm install react-navigation-prune
 ```
 
 ```sh
-yarn add react-navigation-stack-pruner
+yarn add react-navigation-prune
 ```
 
 ```sh
-pnpm add react-navigation-stack-pruner
+pnpm add react-navigation-prune
 ```
 
 ## Quick start
 
-Example flow: `Home → Cart → Address → Payment → Success`. Pruning from `Cart` leaves `Home → Cart → Success`.
+Example flow: `Home → Cart → Address → Payment → Success`. `prune(navigation, { after: 'Cart' })` leaves `Home → Cart → Success`; `{ from: 'Cart' }` leaves `Home → Success`.
 
 ```tsx
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import {
-  createPruneListeners,
-  navigateAndPrune,
-  pruneStack,
-  usePruneOnMount,
-} from 'react-navigation-stack-pruner';
+  pruneListeners,
+  pushAndPrune,
+  prune,
+  usePrune,
+} from 'react-navigation-prune';
 
 const Stack = createNativeStackNavigator();
 
@@ -51,7 +51,7 @@ const Stack = createNativeStackNavigator();
   <Stack.Screen
     name="Success"
     component={SuccessScreen}
-    listeners={createPruneListeners({ from: 'Cart' })} // (c)
+    listeners={pruneListeners({ after: 'Cart' })} // (c)
   />
 </Stack.Navigator>;
 ```
@@ -61,7 +61,7 @@ const Stack = createNativeStackNavigator();
 ```tsx
 function PaymentScreen({ navigation }) {
   const onPaid = () =>
-    navigateAndPrune(navigation, { name: 'Success' }, { from: 'Cart' });
+    pushAndPrune(navigation, { name: 'Success' }, { after: 'Cart' });
   // ...
 }
 ```
@@ -70,7 +70,7 @@ function PaymentScreen({ navigation }) {
 
 ```tsx
 function SuccessScreen({ navigation }) {
-  usePruneOnMount(navigation, { from: 'Cart' });
+  usePrune(navigation, { after: 'Cart' });
   // ...
 }
 ```
@@ -82,7 +82,7 @@ function SuccessScreen({ navigation }) {
 ```tsx
 <Button
   title="Clean up"
-  onPress={() => pruneStack(navigation, { from: 'Cart' })}
+  onPress={() => prune(navigation, { after: 'Cart' })}
 />
 ```
 
@@ -90,20 +90,20 @@ The four patterns are independent. Use whichever fits your flow. Do not combine 
 
 ## Options
 
-These options are shared by `pruneStack`, `navigateAndPrune`, `usePruneOnMount`, `createPruneListeners` and the pure helpers.
+These options are shared by `prune`, `pushAndPrune`, `usePrune`, `pruneListeners` and the pure helpers.
 
 | Option | Type | Default | Description |
 | --- | --- | --- | --- |
-| `from` | `string \| readonly string[] \| (route, index) => boolean` | required | The flow's first screen. Everything between it and the anchor is removed. The anchor is searched in the range `[0, anchor)`. |
-| `match` | `'nearest' \| 'farthest'` | `'nearest'` | Which occurrence to use when `from` appears more than once. |
-| `inclusive` | `boolean` | `false` | Also remove the `from` screen itself. |
+| `after` | `string \| readonly string[] \| (route, index) => boolean` | one of `after` / `from` | The flow's start screen, **kept**. Everything between it and the anchor is removed. Searched in `[0, anchor)`. |
+| `from` | same as `after` | one of `after` / `from` | The flow's start screen, **removed too**: everything from it up to the anchor goes. |
+| `match` | `'nearest' \| 'farthest'` | `'nearest'` | Which occurrence to use when the start screen appears more than once. |
 | `keep` | `string \| readonly string[] \| (route, index) => boolean` | none | Screens inside the removed range that must be kept anyway. |
-| `anchorKey` | `string` | focused route | Key of the upper-bound route, which is always kept. Accepted by `pruneStack`, `usePruneOnMount` and `pruneState`. `navigateAndPrune` and `createPruneListeners` set it for you. |
-| `navigatorId` | `string` | auto | Pin a navigator by its `id` prop (v6/v7 only). Usually unnecessary: by default the current navigator is used and, if it does not contain `from`, the parents are searched automatically (all versions). |
+| `anchorKey` | `string` | focused route | Key of the upper-bound route, which is always kept. Accepted by `prune`, `usePrune` and `pruneState`. `pushAndPrune` and `pruneListeners` set it for you. |
+| `navigatorId` | `string` | auto | Pin a navigator by its `id` prop (v6/v7 only). Usually unnecessary: by default the current navigator is used and, if it does not contain the start screen, the parents are searched automatically (all versions). |
 
 ### `match` with duplicate screen names
 
-Suppose the stack is `Home → Cart → Browse → Cart → Address → Payment`, and the call is `{ from: 'Cart' }` with the anchor on `Payment`.
+Suppose the stack is `Home → Cart → Browse → Cart → Address → Payment`, and the call is `{ after: 'Cart' }` with the anchor on `Payment`.
 
 - `match: 'nearest'` (default) uses the second `Cart`. Result: `Home → Cart → Browse → Cart → Payment`.
 - `match: 'farthest'` uses the first `Cart`. Result: `Home → Cart → Payment`.
@@ -116,8 +116,8 @@ Everything exported from the package entry point.
 
 | Export | Signature | Description |
 | --- | --- | --- |
-| `pruneStack` | `(navigation, options: PruneOptions & { anchorKey? }) => boolean` | Removes the screens in the range in one `RESET`. Returns `true` if it dispatched, `false` if there was nothing to remove. |
-| `navigateAndPrune` | `(navigation, route: RouteToAdd, options: PruneOptions) => void` | Pushes `route` and prunes the range in one `RESET`. `route.name` must belong to the target navigator. |
+| `prune` | `(navigation, options: PruneOptions & { anchorKey? }) => boolean` | Removes the screens in the range in one `RESET`. Returns `true` if it dispatched, `false` if there was nothing to remove. |
+| `pushAndPrune` | `(navigation, route: RouteToAdd, options: PruneOptions) => void` | Pushes `route` and prunes the range in one `RESET`. `route.name` must belong to the target navigator. |
 | `resetAction` | `(state: NavigationStateLike) => ResetActionLike` | Builds `{ type: 'RESET', payload: state }`. |
 | `resolveNavigation` | `(navigation, navigatorId?) => NavigationLike \| undefined` | Returns the navigator to act on: the current one, or the parent with the given `id`. |
 
@@ -128,19 +128,19 @@ Useful for tests and custom actions. They take and return state objects and do n
 | Export | Signature | Description |
 | --- | --- | --- |
 | `pruneState` | `(state, options: PruneStateOptions) => state` | Returns a new state with the range removed. Returns the **same reference** when nothing changes. |
-| `navigateAndPruneState` | `(state, route: RouteLike, options: PruneStateOptions) => state` | Pushes `route` on top of the focused route, then prunes with `route.key` as the anchor. |
-| `findStartIndex` | `(state, options, end: number) => number` | Index of the `from` screen within `[0, end)`, or `-1`. |
+| `pushAndPruneState` | `(state, route: RouteLike, options: PruneStateOptions) => state` | Pushes `route` on top of the focused route, then prunes with `route.key` as the anchor. |
+| `findStartIndex` | `(state, options, end: number) => number` | Index of the start screen (`after` / `from`) within `[0, end)`, or `-1`. |
 | `createRouteKey` | `(name: string) => string` | Generates a collision-safe route key in React Navigation's `name-id` shape. |
-| `matches` | `(matcher: RouteMatcher, route, index) => boolean` | Tests a route against a `from` / `keep` matcher. |
+| `matches` | `(matcher: RouteMatcher, route, index) => boolean` | Tests a route against an `after` / `from` / `keep` matcher. |
 
 ### Hooks and listeners
 
 | Export | Signature | Description |
 | --- | --- | --- |
-| `usePruneOnMount` | `(navigation, options: PruneOptions & { anchorKey? }, config?: PruneOnMountConfig) => void` | Prunes once when the screen mounts. Idempotent, so running it twice (for example in StrictMode) is safe. |
-| `createPruneListeners` | `(options: PruneOptions, config?: { event?: 'transitionEnd' \| 'focus' }) => listenersFactory` | Returns a value for a screen's `listeners` prop. It uses the screen's own `route.key` as the anchor. |
+| `usePrune` | `(navigation, options: PruneOptions & { anchorKey? }, config?: UsePruneConfig) => void` | Prunes once when the screen mounts. Idempotent, so running it twice (for example in StrictMode) is safe. |
+| `pruneListeners` | `(options: PruneOptions, config?: { event?: 'transitionEnd' \| 'focus' }) => listenersFactory` | Returns a value for a screen's `listeners` prop. It uses the screen's own `route.key` as the anchor. |
 
-`usePruneOnMount` config (`PruneOnMountConfig`):
+`usePrune` config (`UsePruneConfig`):
 
 | Field | Type | Default | Description |
 | --- | --- | --- | --- |
@@ -150,7 +150,7 @@ Useful for tests and custom actions. They take and return state objects and do n
 
 ### Types
 
-`NavigationLike`, `NavigationStateLike`, `RouteLike`, `RouteMatcher`, `PruneOptions`, `PruneStateOptions`, `RouteToAdd`, `ResetActionLike`, `PruneOnMountConfig`.
+`NavigationLike`, `NavigationStateLike`, `RouteLike`, `RouteMatcher`, `PruneOptions`, `PruneStateOptions`, `RouteToAdd`, `ResetActionLike`, `UsePruneConfig`.
 
 ## Compatibility
 
@@ -159,7 +159,7 @@ Useful for tests and custom actions. They take and return state objects and do n
 | v5 | Supported. The package uses `dangerouslyGetState` and `dangerouslyGetParent` automatically. |
 | v6, v7 | Supported. Uses `getState`, `getParent` and `getId`. |
 
-- Nested navigators work with zero configuration in every version: if `from` is not in the current navigator, the parents are searched and the first one containing it is pruned. `navigateAndPrune` likewise pushes into the nearest navigator that declares the target screen.
+- Nested navigators work with zero configuration in every version: if the start screen is not in the current navigator, the parents are searched and the first one containing it is pruned. `pushAndPrune` likewise pushes into the nearest navigator that declares the target screen.
 - `navigatorId` works on v6 and v7. On v5 it logs a development warning and falls back to automatic detection.
 - CI runs the same integration suite against real `@react-navigation/core` v5, v6, v7 (React 18) and v7 (React 19).
 - React Navigation v8 is not supported yet; support will be added after its stable release.
@@ -170,26 +170,26 @@ Useful for tests and custom actions. They take and return state objects and do n
 
 - **O(n), single pass.** The range is found and rebuilt in one traversal, and only the new routes array is allocated.
 - **One `RESET`.** A flow exit is one state update, so there is one render and no intermediate flicker.
-- **No dispatch when there is nothing to remove.** `pruneStack` checks first and returns `false`.
+- **No dispatch when there is nothing to remove.** `prune` checks first and returns `false`.
 - **No remounts.** Route objects are reused, so their keys stay the same.
-- **Fresh state.** `pruneStack` and `navigateAndPrune` compute the new state inside the dispatch thunk, so actions dispatched in the same tick are not lost.
+- **Fresh state.** `prune` and `pushAndPrune` compute the new state inside the dispatch thunk, so actions dispatched in the same tick are not lost.
 
 ## FAQ
 
 **Does it work with `@react-navigation/native-stack` and the JS stack?**
 Yes. Both build on the same navigation state, and the package only reads and writes that state.
 
-**Which navigator does `navigateAndPrune` push onto?**
+**Which navigator does `pushAndPrune` push onto?**
 The navigator that owns the `navigation` object you pass in. The `route.name` must be a screen registered on that navigator. If the screen lives in a parent navigator, it is found automatically (the nearest navigator that declares it receives the push); on v6/v7 you can pin one with `navigatorId`.
 
 **Does the pushed screen still animate?**
 Yes. The new route is part of the same `RESET`, so it enters like a normal push. Only the screens in the removed range disappear.
 
-**What happens if `from` is not in the stack?**
+**What happens if the start screen is not in the stack?**
 Nothing. The stack is left alone, and nothing is dispatched.
 
 **Can I use it in tests without a navigator?**
-Yes. Call `pruneState` or `navigateAndPruneState` with a plain state object.
+Yes. Call `pruneState` or `pushAndPruneState` with a plain state object.
 
 ## Contributing
 

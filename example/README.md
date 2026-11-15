@@ -1,6 +1,6 @@
 # Examples
 
-Three minimal Expo apps to try every feature of `react-navigation-stack-pruner` by hand (or from an automation agent driving the iOS Simulator). They are **not** part of the published package, the root pnpm workspace or CI.
+Three minimal Expo apps to try every feature of `react-navigation-prune` by hand (or from an automation agent driving the iOS Simulator). They are **not** part of the published package, the root pnpm workspace or CI.
 
 | App | React Navigation | Notes |
 | --- | --- | --- |
@@ -39,9 +39,9 @@ example/
 Nothing is installed or built for the library.
 
 - `metro.config.js` adds the repo's `src/` and `example/shared/` to `watchFolders`.
-- A custom `resolveRequest` maps `react-navigation-stack-pruner` to `../../src/index.ts`, and strips the `.js` suffix from the library's relative ESM imports (`./actions.js` becomes `./actions.ts`).
+- A custom `resolveRequest` maps `react-navigation-prune` to `../../src/index.ts`, and strips the `.js` suffix from the library's relative ESM imports (`./actions.js` becomes `./actions.ts`).
 - `nodeModulesPaths` points only at the app's `node_modules` and `disableHierarchicalLookup` is on, so the repo root `node_modules` is never searched. `react` and `react-native` requested from `shared/` or `src/` are resolved as if from the app, so there is exactly one copy of React.
-- `tsconfig.json` has a `paths` entry for `react-navigation-stack-pruner` (and maps `react` / `react-native` types to the app's copy so `shared/` type-checks). `app.json` sets `experiments.tsconfigPaths: false` so Metro does not apply those type-only mappings.
+- `tsconfig.json` has a `paths` entry for `react-navigation-prune` (and maps `react` / `react-native` types to the app's copy so `shared/` type-checks). `app.json` sets `experiments.tsconfigPaths: false` so Metro does not apply those type-only mappings.
 
 Edit anything under `src/` and Fast Refresh picks it up.
 
@@ -61,13 +61,13 @@ Edit anything under `src/` and Fast Refresh picks it up.
 
 | # | Scenario | Steps (testIDs) | Expected stack | Expected mounts |
 | --- | --- | --- | --- | --- |
-| 1 | `navigateAndPrune` | Home `btn-s1-navigate`, `btn-next` x2 (Cart, Address), Payment `btn-pay` | `Home › Cart › Success`. `btn-back` goes to Cart | Home=1 Cart=1 Success=1 (Address, Payment gone) |
-| 2 | `usePruneOnMount` | `btn-s2-hook`, `btn-next` x2, `btn-pay`, wait about 0.5 s | first `Home › Cart › Address › Payment › Success`, then `Home › Cart › Success`. Back goes to Cart | Home=1 Cart=1 Success=1 |
-| 3 | `createPruneListeners` | `btn-s3-listener`, `btn-next` x2, `btn-pay` | prunes on `transitionEnd` to `Home › Cart › Success` | Home=1 Cart=1 Success=1 |
-| 4 | imperative `pruneStack` | `btn-s4-imperative`, `btn-next` x2, on Payment `btn-prune` | `Home › Cart › Payment` (Address removed). Pressing `btn-prune` again changes nothing | Home=1 Cart=1 Payment=1 |
+| 1 | `pushAndPrune` | Home `btn-s1-navigate`, `btn-next` x2 (Cart, Address), Payment `btn-pay` | `Home › Cart › Success`. `btn-back` goes to Cart | Home=1 Cart=1 Success=1 (Address, Payment gone) |
+| 2 | `usePrune` | `btn-s2-hook`, `btn-next` x2, `btn-pay`, wait about 0.5 s | first `Home › Cart › Address › Payment › Success`, then `Home › Cart › Success`. Back goes to Cart | Home=1 Cart=1 Success=1 |
+| 3 | `pruneListeners` | `btn-s3-listener`, `btn-next` x2, `btn-pay` | prunes on `transitionEnd` to `Home › Cart › Success` | Home=1 Cart=1 Success=1 |
+| 4 | imperative `prune` | `btn-s4-imperative`, `btn-next` x2, on Payment `btn-prune` | `Home › Cart › Payment` (Address removed). Pressing `btn-prune` again changes nothing | Home=1 Cart=1 Payment=1 |
 | 5a | duplicates, nearest | `btn-s5-duplicates`, `btn-next` x4 to reach Done (`Home › Cart › Step › Cart › Step › Done`), `btn-prune-nearest` | `Home › Cart › Step › Cart › Done` | all kept screens =1 |
 | 5b | duplicates, farthest | same, then `btn-prune-farthest` (after Reset demo) | `Home › Cart › Done` | Home=1 Cart=1 Done=1 |
-| 6a | `inclusive: true` | `btn-s6-inclusive`, `btn-next` x2, `btn-pay` | `Home › Success` | Home=1 Success=1 |
+| 6a | `from: 'Cart'` (start removed too) | `btn-s6-inclusive`, `btn-next` x2, `btn-pay` | `Home › Success` | Home=1 Success=1 |
 | 6b | `keep: ['Address']` | `btn-s6-keep`, `btn-next` x2, `btn-pay` | `Home › Cart › Address › Success` | Home=1 Cart=1 Address=1 Success=1 (Payment gone) |
 | 7a | nested, auto parent | `btn-s7-nested`, `btn-next` x2 (Cart, Address, then Nested/InnerA), InnerA `btn-next`, InnerB `btn-prune-auto` | root `Home › Cart › Nested` (Address removed), local `InnerA › InnerB` unchanged | Nested and Inner screens stay =1 |
 | 7b | nested, `navigatorId` (v6/v7 only) | same, InnerB `btn-prune-id` | same as 7a | same as 7a |

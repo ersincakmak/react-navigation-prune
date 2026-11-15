@@ -21,7 +21,7 @@ config.resolver.disableHierarchicalLookup = true;
 // Force the core packages to the app's copy, whoever asks for them.
 const pinned = ['react', 'react-native', 'react/jsx-runtime', 'react/jsx-dev-runtime'];
 config.resolver.extraNodeModules = new Proxy(
-  { 'react-navigation-stack-pruner': path.join(libSrc, 'index.ts') },
+  { 'react-navigation-prune': path.join(libSrc, 'index.ts') },
   { get: (target, name) => (name in target ? target[name] : path.join(appModules, String(name))) }
 );
 
@@ -30,7 +30,7 @@ const defaultResolve = (context, moduleName, platform) =>
 
 config.resolver.resolveRequest = (context, moduleName, platform) => {
   // Library consumed from source.
-  if (moduleName === 'react-navigation-stack-pruner') {
+  if (moduleName === 'react-navigation-prune') {
     return { type: 'sourceFile', filePath: path.join(libSrc, 'index.ts') };
   }
   // The library uses ESM-style `./x.js` imports that point at `./x.ts` files.
