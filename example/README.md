@@ -24,7 +24,7 @@ Each app is standalone: it has its own `pnpm-workspace.yaml` (empty `packages: [
 
 ```
 example/
-  shared/            plain TS/TSX demo code, imports only react, react-native and the library
+  shared/            plain TS/TSX demo code; navigation.ts holds the typed navigation tree
     createDemoApp.tsx  all screens + navigator wiring, driven by a config
     ui.tsx             Frame (version label, stack readout, mount counters) and Button
     mounts.ts          per-route-key mount counter
@@ -32,7 +32,7 @@ example/
   v5 v6 v7/          App.tsx passes NavigationContainer + createStackNavigator to createDemoApp
 ```
 
-`shared/` never imports `@react-navigation/*`; each `App.tsx` supplies the version-specific pieces.
+`shared/` imports `@react-navigation/*` for types only (`import type`, erased at build time); each `App.tsx` supplies the version-specific runtime pieces. The navigation tree is typed once in `shared/navigation.ts` (`RootStackParamList`, `NestedStackParamList`), and every screen, `push` call and library call is checked against it. Each app's `tsconfig.json` maps `@react-navigation/*` to its own `node_modules`, so the shared code is type-checked against v5, v6 and v7 separately: run `npx tsc --noEmit` in `v5/`, `v6/` or `v7/`.
 
 ## How the library is consumed from source
 
@@ -41,7 +41,7 @@ Nothing is installed or built for the library.
 - `metro.config.js` adds the repo's `src/` and `example/shared/` to `watchFolders`.
 - A custom `resolveRequest` maps `react-navigation-prune` to `../../src/index.ts`, and strips the `.js` suffix from the library's relative ESM imports (`./actions.js` becomes `./actions.ts`).
 - `nodeModulesPaths` points only at the app's `node_modules` and `disableHierarchicalLookup` is on, so the repo root `node_modules` is never searched. `react` and `react-native` requested from `shared/` or `src/` are resolved as if from the app, so there is exactly one copy of React.
-- `tsconfig.json` has a `paths` entry for `react-navigation-prune` (and maps `react` / `react-native` types to the app's copy so `shared/` type-checks). `app.json` sets `experiments.tsconfigPaths: false` so Metro does not apply those type-only mappings.
+- `tsconfig.json` has a `paths` entry for `react-navigation-prune` (and maps `react`, `react-native` and `@react-navigation/*` types to the app's copy so `shared/` type-checks). `app.json` sets `experiments.tsconfigPaths: false` so Metro does not apply those type-only mappings.
 
 Edit anything under `src/` and Fast Refresh picks it up.
 
