@@ -3,6 +3,15 @@
   "version": "0.1.0",
   "description": "Zero-dependency, version-agnostic helpers to remove intermediate screens from a React Navigation stack (v5, v6, v7) in a single state update.",
   "license": "MIT",
+  "author": "ersincakmak",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ersincakmak/react-navigation-prune.git"
+  },
+  "homepage": "https://github.com/ersincakmak/react-navigation-prune#readme",
+  "bugs": {
+    "url": "https://github.com/ersincakmak/react-navigation-prune/issues"
+  },
   "sideEffects": false,
   "main": "lib/commonjs/index.js",
   "module": "lib/module/index.js",
