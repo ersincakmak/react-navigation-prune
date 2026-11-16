@@ -1,1 +1,5 @@
 packages: []
+
+# Security: minimatch < 11.0.1 is vulnerable to DoS (Expo tooling, transitive).
+overrides:
+  "minimatch@>=7.0.0 <11.0.1": ^11.0.1
