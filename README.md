@@ -232,6 +232,8 @@ pnpm pack --dry-run
 
 The package manager is pinned in `package.json` (`packageManager`). Use [corepack](https://nodejs.org/api/corepack.html) or install that pnpm version. Do not add a `package-lock.json` or `yarn.lock`.
 
+See [CONTRIBUTING.md](CONTRIBUTING.md) for the pull request workflow. To report a vulnerability, see [SECURITY.md](SECURITY.md).
+
 ## License
 
 [MIT](./LICENSE)

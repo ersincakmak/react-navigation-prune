@@ -1,0 +1,35 @@
+name: Bug report
+description: Something does not work as documented
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: Include the call you made (options) and the stack before and after.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect?
+    validations:
+      required: true
+  - type: input
+    id: rn-navigation
+    attributes:
+      label: React Navigation version
+      placeholder: "@react-navigation/native 7.x, native-stack 7.x"
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: react-navigation-prune, React and React Native versions
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction
+      description: A snippet or a link to a repository.
