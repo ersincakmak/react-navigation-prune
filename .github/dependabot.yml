@@ -1,0 +1,35 @@
+version: 2
+updates:
+  # Library dev dependencies (the package itself has no runtime dependencies).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      dev-dependencies:
+        dependency-type: development
+        update-types: [minor, patch]
+    ignore:
+      # Pinned on purpose: each alias tests one React Navigation major.
+      - dependency-name: core-v5
+        update-types: [version-update:semver-major]
+      - dependency-name: core-v6
+        update-types: [version-update:semver-major]
+      - dependency-name: core-v7
+        update-types: [version-update:semver-major]
+      # The root test suite runs on React 18; React 19 lives in test/react19.
+      - dependency-name: react
+        update-types: [version-update:semver-major]
+      - dependency-name: react-test-renderer
+        update-types: [version-update:semver-major]
+      - dependency-name: "@types/react"
+        update-types: [version-update:semver-major]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
