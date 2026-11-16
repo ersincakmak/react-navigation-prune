@@ -1,5 +1,5 @@
 import { matches } from './matchers.js';
-import type { NavigationStateLike, PruneStateOptions, RouteMatcher } from './types.js';
+import type { NavigationStateLike, PruneStateOptions, RouteMatcher, StateRouteNames } from './types.js';
 
 /**
  * Finds the index of the flow start inside `[0, end)`.
@@ -29,7 +29,15 @@ export function findStartIndex(
  * Returns the **same reference** when nothing would change; callers can use
  * `next === state` to skip dispatching.
  */
-export function pruneState<S extends NavigationStateLike>(state: S, options: PruneStateOptions): S {
+export function pruneState<S extends NavigationStateLike>(
+  state: S,
+  options: PruneStateOptions<StateRouteNames<S>>
+): S {
+  return pruneStateImpl(state, options as PruneStateOptions);
+}
+
+/** Untyped core shared by every entry point. @internal */
+export function pruneStateImpl<S extends NavigationStateLike>(state: S, options: PruneStateOptions): S {
   const { routes } = state;
   const len = routes.length;
   if (len < 2) return state;

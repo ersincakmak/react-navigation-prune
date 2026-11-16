@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
-import { prune } from './actions.js';
-import type { NavigationLike, PruneOptions } from './types.js';
+import { pruneImpl } from './actions.js';
+import type { NavigationLike, ParamListLike, PruneOptions, ScreenNames } from './types.js';
 
 declare function setTimeout(cb: () => void, ms: number): unknown;
 declare function clearTimeout(handle: unknown): void;
@@ -26,13 +26,13 @@ export interface UsePruneConfig {
  *
  * Idempotent: running twice (e.g. React StrictMode) is a no-op the second time.
  */
-export function usePrune(
-  navigation: NavigationLike,
-  options: PruneOptions & { anchorKey?: string },
+export function usePrune<ParamList extends ParamListLike = never, N extends NavigationLike = NavigationLike>(
+  navigation: N,
+  options: PruneOptions<ScreenNames<ParamList, N>>,
   config: UsePruneConfig = {}
 ): void {
-  const optionsRef = useRef(options);
-  optionsRef.current = options;
+  const optionsRef = useRef(options as PruneOptions);
+  optionsRef.current = options as PruneOptions;
   const { when = 'transitionEnd', fallbackMs = 500, enabled = true } = config;
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function usePrune(
     const run = () => {
       if (done) return;
       done = true;
-      prune(navigation, optionsRef.current);
+      pruneImpl(navigation, optionsRef.current);
     };
 
     if (when === 'immediate' || typeof navigation.addListener !== 'function') {

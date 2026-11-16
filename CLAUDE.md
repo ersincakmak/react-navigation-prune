@@ -10,6 +10,7 @@ Removes intermediate screens from a React Navigation stack (e.g. everything betw
 - `pruneState` must return the **same reference** when nothing changes; `prune` must not dispatch in that case.
 - Keep everything O(n), single pass, no allocations in hot paths beyond the new routes array.
 - Relative imports in `src/` use the `.js` extension (valid ESM output).
+- Screen names are type-safe: public functions take `<ParamList = never, N>` and type options as `PruneOptions<ScreenNames<ParamList, N>>` (names inferred from `N`'s `getState()` / `dangerouslyGetState()` `routeNames`, `string` when untyped). Internals use the untyped `*Impl` functions. Keep `NavigationLike` members in method syntax (bivariant) so every version's typed navigation is assignable, and keep `NoInferLegacy` (no TS 5.4 `NoInfer`). Add a case to `test/types/core-vN.ts` for any typing change.
 - Git commits: no `Co-Authored-By` or other Claude/AI attribution lines. The repo owner is the only author.
 
 ## Layout
@@ -18,13 +19,14 @@ Removes intermediate screens from a React Navigation stack (e.g. everything betw
 - `src/hooks.ts` – `usePrune` (transitionEnd + fallback timer, idempotent)
 - `src/listeners.ts` – `pruneListeners` for a screen's `listeners` prop
 - `src/types.ts`, `src/matchers.ts`, `src/dev.ts` (`__DEV__`-guarded warnings)
+- `test/types/core-vN.ts` – type tests (`@ts-expect-error`) against real core v5/v6/v7 types, run by `pnpm typecheck`.
 - `test/*.test.js` – `node:test` against the built CommonJS output (`lib/commonjs`). No Jest/Babel.
 - `test/integration/` – runs the same scenarios (`scenarios.js` + `harness.js`) against real `@react-navigation/core`: v5/v6/v7 on React 18 (root devDependencies, npm aliases `core-vN`), v7 on React 19 via the private workspace package `test/react19/` (its `setup.js` redirects every `require('react')` in that process to React 19 so there is a single React instance). A core that fails to load must fail the suite, never skip.
 - `navigatorId` is only honoured when `getId` exists (v6/v7); v5's `getParent()` ignores its argument. Nested targeting otherwise relies on walking parents (`findTarget` in `src/actions.ts`).
 
 ## Commands
 - Package manager: **pnpm** (pinned via `packageManager`, use corepack). Do not add package-lock.json or yarn.lock.
-- `pnpm typecheck`
+- `pnpm typecheck` (src + type tests)
 - `pnpm build` → `lib/commonjs`, `lib/module`, `lib/typescript`
 - `pnpm test` → build + all tests
 - `pnpm pack --dry-run` → check the published files

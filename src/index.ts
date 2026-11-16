@@ -13,6 +13,7 @@ export { matches } from './matchers.js';
 export type {
   NavigationLike,
   NavigationStateLike,
+  ParamListLike,
   PruneCommonOptions,
   PruneOptions,
   PruneStart,
@@ -20,5 +21,9 @@ export type {
   ResetActionLike,
   RouteLike,
   RouteMatcher,
+  RouteNameOf,
   RouteToAdd,
+  ScreenNames,
+  StateRouteNames,
+  TypedRouteToAdd,
 } from './types.js';

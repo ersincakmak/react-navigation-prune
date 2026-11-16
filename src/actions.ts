@@ -1,13 +1,17 @@
 import { warn } from './dev.js';
-import { createRouteKey, findStartIndex, pruneState } from './pruneState.js';
+import { createRouteKey, findStartIndex, pruneStateImpl as pruneState } from './pruneState.js';
 import type {
   NavigationLike,
   NavigationStateLike,
+  ParamListLike,
   PruneOptions,
   PruneStateOptions,
   ResetActionLike,
   RouteLike,
   RouteToAdd,
+  ScreenNames,
+  StateRouteNames,
+  TypedRouteToAdd,
 } from './types.js';
 
 /** Builds the RESET action by hand: same shape in v5 → v7, no imports needed. */
@@ -71,7 +75,7 @@ export function resolveNavigation(
 }
 
 function toStateOptions(
-  options: PruneOptions & { anchorKey?: string },
+  options: PruneOptions,
   anchorKey?: string
 ): PruneStateOptions {
   // `anchorKey` is always taken from the argument: after walking up to a
@@ -94,7 +98,7 @@ function anchorIndex(state: NavigationStateLike, anchorKey: string | undefined):
  */
 function findTarget(
   navigation: NavigationLike,
-  options: PruneOptions & { anchorKey?: string },
+  options: PruneOptions,
   walk: boolean
 ): { target: NavigationLike; state: NavigationStateLike | undefined; anchorKey: string | undefined } | undefined {
   let nav: NavigationLike | undefined = navigation;
@@ -119,10 +123,15 @@ function findTarget(
  * If the start screen is not in the current navigator, the parents are searched and the
  * first navigator containing it is pruned (unless `navigatorId` pins one).
  */
-export function prune(
-  navigation: NavigationLike,
-  options: PruneOptions & { anchorKey?: string }
+export function prune<ParamList extends ParamListLike = never, N extends NavigationLike = NavigationLike>(
+  navigation: N,
+  options: PruneOptions<ScreenNames<ParamList, N>>
 ): boolean {
+  return pruneImpl(navigation, options as PruneOptions);
+}
+
+/** Untyped core of `prune`. @internal */
+export function pruneImpl(navigation: NavigationLike, options: PruneOptions): boolean {
   const explicit = options.navigatorId !== undefined && supportsIds(navigation);
   const start = resolveNavigation(navigation, options.navigatorId);
   if (!start) return false;
@@ -151,6 +160,14 @@ export function prune(
 export function pushAndPruneState<S extends NavigationStateLike>(
   state: S,
   route: RouteLike,
+  options: PruneStateOptions<StateRouteNames<S>>
+): S {
+  return pushAndPruneStateImpl(state, route, options as PruneStateOptions);
+}
+
+function pushAndPruneStateImpl<S extends NavigationStateLike>(
+  state: S,
+  route: RouteLike,
   options: PruneStateOptions
 ): S {
   const base = state.routes.slice(0, state.index + 1);
@@ -164,11 +181,18 @@ export function pushAndPruneState<S extends NavigationStateLike>(
  * update — the new screen animates in as a normal push and nothing flickers.
  * `route.name` must belong to the target navigator.
  */
-export function pushAndPrune(
-  navigation: NavigationLike,
-  route: RouteToAdd,
-  options: PruneOptions
+export function pushAndPrune<
+  ParamList extends ParamListLike = never,
+  N extends NavigationLike = NavigationLike,
+>(
+  navigation: N,
+  route: TypedRouteToAdd<ParamList, ScreenNames<ParamList, N>>,
+  options: PruneOptions<ScreenNames<ParamList, N>>
 ): void {
+  pushAndPruneImpl(navigation, route as RouteToAdd, options as PruneOptions);
+}
+
+function pushAndPruneImpl(navigation: NavigationLike, route: RouteToAdd, options: PruneOptions): void {
   const explicit = options.navigatorId !== undefined && supportsIds(navigation);
   let target = resolveNavigation(navigation, options.navigatorId);
   if (!target) return;
@@ -183,13 +207,13 @@ export function pushAndPrune(
     }
   }
   const newRoute: RouteLike = { key: route.key ?? createRouteKey(route.name), name: route.name };
-  if (route.params !== undefined) newRoute.params = route.params;
+  if (route.params !== undefined) newRoute.params = route.params as object;
   const stateOptions = toStateOptions(options);
 
   target!.dispatch((state: NavigationStateLike) => {
     if (state.routeNames && state.routeNames.indexOf(route.name) === -1) {
       warn(`Screen "${route.name}" is not part of the target navigator.`);
     }
-    return resetAction(pushAndPruneState(state, newRoute, stateOptions));
+    return resetAction(pushAndPruneStateImpl(state, newRoute, stateOptions));
   });
 }

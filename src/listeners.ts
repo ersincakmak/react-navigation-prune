@@ -1,5 +1,5 @@
-import { prune } from './actions.js';
-import type { NavigationLike, PruneOptions, RouteLike } from './types.js';
+import { pruneImpl } from './actions.js';
+import type { NavigationLike, ParamListLike, PruneOptions, RouteLike, ScreenNames } from './types.js';
 
 /**
  * Declarative variant for a screen's `listeners` prop (v5+):
@@ -8,16 +8,19 @@ import type { NavigationLike, PruneOptions, RouteLike } from './types.js';
  *
  * Uses the screen's own `route.key` as the anchor, so it is exact even with
  * duplicate screen names.
+ *
+ * Pass your param list for type-checked screen names:
+ * `pruneListeners<RootStackParamList>({ after: 'Cart' })`.
  */
-export function pruneListeners(
-  options: PruneOptions,
+export function pruneListeners<ParamList extends ParamListLike = never>(
+  options: PruneOptions<ScreenNames<ParamList, unknown>>,
   config: { event?: 'focus' | 'transitionEnd' } = {}
 ) {
   const event = config.event ?? 'transitionEnd';
   return ({ navigation, route }: { navigation: NavigationLike; route: RouteLike }) => ({
     [event]: (e: any) => {
       if (event === 'transitionEnd' && e?.data?.closing) return;
-      prune(navigation, { ...options, anchorKey: route.key });
+      pruneImpl(navigation, { ...(options as PruneOptions), anchorKey: route.key });
     },
   });
 }

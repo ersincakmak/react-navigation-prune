@@ -108,6 +108,34 @@ Suppose the stack is `Home → Cart → Browse → Cart → Address → Payment`
 - `match: 'nearest'` (default) uses the second `Cart`. Result: `Home → Cart → Browse → Cart → Payment`.
 - `match: 'farthest'` uses the first `Cart`. Result: `Home → Cart → Payment`.
 
+## Type safety
+
+Screen names are checked against your navigator's param list. Nothing extra is installed: the names are read structurally from the typed `navigation` object (v5, v6 and v7).
+
+```tsx
+type RootStackParamList = {
+  Home: undefined;
+  Cart: undefined;
+  Payment: { amount: number };
+  Success: undefined;
+};
+
+function Payment({ navigation }: StackScreenProps<RootStackParamList, 'Payment'>) {
+  prune(navigation, { after: 'Cart' });            // ok
+  prune(navigation, { after: 'Kart' });            // error: not a screen of this navigator
+  prune(navigation, { after: 'Cart', keep: ['Adress'] }); // error
+  prune(navigation, { after: (route) => route.name === 'Cart' }); // `route.name` is typed
+}
+```
+
+Pass the param list explicitly when the names cannot come from `navigation`:
+
+- **The start screen lives in a parent navigator** (auto-detected at runtime, or `navigatorId`): `prune<RootStackParamList>(navigation, { after: 'Cart' })`.
+- **`pruneListeners`** is created outside any screen: `pruneListeners<RootStackParamList>({ after: 'Cart' })`.
+- **Typed params for `pushAndPrune`**: `pushAndPrune<RootStackParamList>(navigation, { name: 'Payment', params: { amount: 1 } }, { after: 'Cart' })` checks `params` and requires them when the screen does.
+
+`pruneState` and `pushAndPruneState` take the names from the state's `routeNames` type. An untyped `navigation` (`any`, or a `ParamListBase` navigator) accepts any string, as before.
+
 ## API reference
 
 Everything exported from the package entry point.
@@ -116,8 +144,8 @@ Everything exported from the package entry point.
 
 | Export | Signature | Description |
 | --- | --- | --- |
-| `prune` | `(navigation, options: PruneOptions & { anchorKey? }) => boolean` | Removes the screens in the range in one `RESET`. Returns `true` if it dispatched, `false` if there was nothing to remove. |
-| `pushAndPrune` | `(navigation, route: RouteToAdd, options: PruneOptions) => void` | Pushes `route` and prunes the range in one `RESET`. `route.name` must belong to the target navigator. |
+| `prune` | `<ParamList?>(navigation, options: PruneOptions) => boolean` | Removes the screens in the range in one `RESET`. Returns `true` if it dispatched, `false` if there was nothing to remove. |
+| `pushAndPrune` | `<ParamList?>(navigation, route, options: PruneOptions) => void` | Pushes `route` and prunes the range in one `RESET`. `route.name` must belong to the target navigator. |
 | `resetAction` | `(state: NavigationStateLike) => ResetActionLike` | Builds `{ type: 'RESET', payload: state }`. |
 | `resolveNavigation` | `(navigation, navigatorId?) => NavigationLike \| undefined` | Returns the navigator to act on: the current one, or the parent with the given `id`. |
 
@@ -137,8 +165,8 @@ Useful for tests and custom actions. They take and return state objects and do n
 
 | Export | Signature | Description |
 | --- | --- | --- |
-| `usePrune` | `(navigation, options: PruneOptions & { anchorKey? }, config?: UsePruneConfig) => void` | Prunes once when the screen mounts. Idempotent, so running it twice (for example in StrictMode) is safe. |
-| `pruneListeners` | `(options: PruneOptions, config?: { event?: 'transitionEnd' \| 'focus' }) => listenersFactory` | Returns a value for a screen's `listeners` prop. It uses the screen's own `route.key` as the anchor. |
+| `usePrune` | `<ParamList?>(navigation, options: PruneOptions, config?: UsePruneConfig) => void` | Prunes once when the screen mounts. Idempotent, so running it twice (for example in StrictMode) is safe. |
+| `pruneListeners` | `<ParamList?>(options: PruneOptions, config?: { event?: 'transitionEnd' \| 'focus' }) => listenersFactory` | Returns a value for a screen's `listeners` prop. It uses the screen's own `route.key` as the anchor. |
 
 `usePrune` config (`UsePruneConfig`):
 
@@ -151,6 +179,8 @@ Useful for tests and custom actions. They take and return state objects and do n
 ### Types
 
 `NavigationLike`, `NavigationStateLike`, `RouteLike`, `RouteMatcher`, `PruneOptions`, `PruneStateOptions`, `RouteToAdd`, `ResetActionLike`, `UsePruneConfig`.
+
+Type-level helpers: `ScreenNames<ParamList, Navigation>`, `RouteNameOf<Navigation>`, `StateRouteNames<State>`, `TypedRouteToAdd<ParamList, Name>`, `ParamListLike`. The option types take the accepted screen names as a parameter, e.g. `PruneOptions<keyof RootStackParamList>`.
 
 ## Compatibility
 
