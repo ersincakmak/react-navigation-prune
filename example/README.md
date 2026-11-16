@@ -32,7 +32,7 @@ example/
   v5 v6 v7/          App.tsx passes NavigationContainer + createStackNavigator to createDemoApp
 ```
 
-`shared/` imports `@react-navigation/*` for types only (`import type`, erased at build time); each `App.tsx` supplies the version-specific runtime pieces. The navigation tree is typed once in `shared/navigation.ts` (`RootStackParamList`, `NestedStackParamList`), and every screen, `push` call and library call is checked against it. Each app's `tsconfig.json` maps `@react-navigation/*` to its own `node_modules`, so the shared code is type-checked against v5, v6 and v7 separately: run `npx tsc --noEmit` in `v5/`, `v6/` or `v7/`.
+`shared/` imports `@react-navigation/*` for types only (`import type`, erased at build time); each `App.tsx` supplies the version-specific runtime pieces. The navigation tree is typed once in `shared/navigation.ts` (`RootStackParamList`, `NestedStackParamList`), and every screen, `push` call and library call is checked against it. Each app's `tsconfig.json` maps `@react-navigation/*` to its own `node_modules`, so the shared code is type-checked against v5, v6 and v7 separately: run `npx tsc --noEmit` in `v5/`, `v6/` or `v7/`. `shared/tsconfig.json` is the editor project for `shared/` and checks it against v7 (`npx tsc -p shared`).
 
 ## How the library is consumed from source
 

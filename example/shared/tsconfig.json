@@ -1,0 +1,8 @@
+{
+  // Editor project for the shared demo code. `paths` come from v7 (resolved
+  // relative to v7/), so the editor checks against v7. To check against the
+  // other versions run `npx tsc --noEmit` in v5/ or v6/.
+  "extends": "../v7/tsconfig.json",
+  "compilerOptions": { "noEmit": true },
+  "include": ["./**/*", "../../src"]
+}

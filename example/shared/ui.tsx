@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { mountCountFor, recordMount, resetMounts } from './mounts';
 import { collectKeys, getAncestors, getNavState, routeNames } from './navUtils';
+import type { DemoNavigation, DemoRoute } from './navUtils';
 
 export function Button(props: { testID: string; title: string; onPress: () => void }) {
   return (
@@ -16,7 +17,7 @@ export function Button(props: { testID: string; title: string; onPress: () => vo
   );
 }
 
-function useStackInfo(navigation: any) {
+function useStackInfo(navigation: DemoNavigation) {
   const read = React.useCallback(() => {
     const chain = getAncestors(navigation);
     const root = chain[chain.length - 1];
@@ -38,15 +39,15 @@ function useStackInfo(navigation: any) {
       nav.addListener('state', update),
       nav.addListener('focus', update),
     ]);
-    return () => unsubs.forEach((u: () => void) => u());
+    return () => unsubs.forEach((u) => u());
   }, [navigation, read]);
   return { info, refresh: () => setInfo(read()) };
 }
 
 export function Frame(props: {
   version: string;
-  navigation: any;
-  route: any;
+  navigation: DemoNavigation;
+  route: DemoRoute;
   children?: React.ReactNode;
 }) {
   const { version, navigation, route } = props;
@@ -64,7 +65,7 @@ export function Frame(props: {
   }, []);
 
   const chain = getAncestors(navigation);
-  const root = chain[chain.length - 1];
+  const root = chain[chain.length - 1]!;
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
@@ -96,7 +97,8 @@ export function Frame(props: {
           title="Reset demo"
           onPress={() => {
             resetMounts();
-            root.reset({ index: 0, routes: [{ name: 'Home' }] });
+            // Same action `navigation.reset()` dispatches, without its per-navigator typing.
+            root.dispatch({ type: 'RESET', payload: { index: 0, routes: [{ name: 'Home' }] } });
           }}
         />
       </View>
